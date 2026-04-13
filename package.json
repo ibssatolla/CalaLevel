@@ -1,0 +1,17 @@
+{
+  "name": "calastatic",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+  "dev": "electronmon ."
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^40.6.1",
+    "electronmon": "^2.0.4"
+  }
+}

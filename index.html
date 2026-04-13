@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalaLevel - Level Up Your Calisthenics</title>
+    <meta name="description"
+        content="Gamified calisthenics training app. Track your progress, earn XP, and level up your skills.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="glass-header">
+            <nav>
+                <div class="logo" data-page="home">Cala<span class="highlight">Level</span></div>
+                <ul class="nav-links">
+                    <li><a href="#" class="nav-link active" data-page="home">Home</a></li>
+                    <li><a href="#" class="nav-link" data-page="skills">Skills</a></li>
+                    <li><a href="#" class="nav-link" data-page="programs">Programs</a></li>
+                    <li><a href="#" class="nav-link" data-page="community">Community</a></li>
+                    <li><a href="#" class="nav-link" data-page="map">Map</a></li>
+                    <li><a href="#" class="nav-link" data-page="training">Training</a></li>
+                    <li><a href="#" class="nav-link" data-page="profile">Profile</a></li>
+                </ul>
+                <button class="cta-button small" data-page="training">Get Started</button>
+            </nav>
+        </header>
+
+        <main>
+            <section id="home" class="page active">
+                <div class="hero">
+                    <div class="hero-content">
+                        <div class="level-badge">
+                            <span class="level-text">LEVEL 1</span>
+                            <div class="xp-bar-container">
+                                <div class="xp-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <h1>Master Your Body.<br>Level Up Your <span class="gradient-text">Life</span>.</h1>
+                        <p>The first RPG-style calisthenics tracker. Earn XP for every rep, unlock
+                            skills, and compete on
+                            the global leaderboard.</p>
+                        <div class="hero-actions">
+                            <button class="cta-button primary" data-page="training">Start Training</button>
+                            <button id="view-map-btn" class="cta-button secondary" data-page="map">View Map</button>
+                        </div>
+                    </div>
+                    <div class="hero-visual">
+                        <!-- Spline 3D Viewer -->
+                        <script type="module"
+                            src="https://unpkg.com/@splinetool/viewer@1.9.59/build/spline-viewer.js"></script>
+                        <spline-viewer url="https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode"></spline-viewer>
+                        <div class="core-label"
+                            style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.5); font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase;">
+                            Progress Core</div>
+                    </div>
+                </div>
+                <div class="home-features">
+                    <h2>Game Mechanics</h2>
+                    <div class="feature-grid">
+                        <div class="feature-card glass-card" data-page="skills">
+                            <div class="icon-box">📊</div>
+                            <h3>Skill Tree</h3>
+                            <p>Unlock moves like Front Lever and Planche through progressive overload paths.</p>
+                        </div>
+                        <div class="feature-card glass-card" data-page="community">
+                            <div class="icon-box">⚔️</div>
+                            <h3>Battles</h3>
+                            <p>Challenge friends to rep battles and park dominance wars.</p>
+                        </div>
+                        <div class="feature-card glass-card" data-page="map">
+                            <div class="icon-box">🗺️</div>
+                            <h3>Park Map</h3>
+                            <p>Find the best outdoor gyms and claim them for your team.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="programs" class="programs-section page">
+                <h2>Programs</h2>
+                <p class="section-subtitle">Din personlige treningsplan for uken.</p>
+
+                <div class="program-controls">
+                    <div class="week-selector">
+                        <span class="current-week">Denne uken</span>
+                    </div>
+                    <div style="display:flex; gap: 1rem;">
+                        <button id="view-history-btn" class="cta-button secondary small">Historikk</button>
+                        <button id="generate-program-btn" class="cta-button primary small">Generer ny plan</button>
+                    </div>
+                </div>
+
+                <div id="weekly-schedule" class="weekly-grid">
+                    <!-- Rendered by JS -->
+                </div>
+
+                <div class="library-preview">
+                    <div class="section-header-small">
+                        <h3>Øvelsesbibliotek</h3>
+                    </div>
+                    <div id="library-grid" class="library-grid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <section id="community" class="battles-section page">
+                <h2>Battle Arena</h2>
+                <p class="section-subtitle">Compete with friends and rivals.</p>
+
+                <div class="battles-container">
+                    <!-- Active Challenges Column -->
+                    <div class="challenges-column">
+                        <h3>Active Challenges</h3>
+                        <div id="challenges-list" class="challenges-list">
+                            <!-- Challenges rendered by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Leaderboard Column -->
+                    <div class="leaderboard-column">
+                        <h3>Global Leaderboard</h3>
+                        <div class="leaderboard-card glass-card">
+                            <div class="leaderboard-header">
+                                <span>Rank</span>
+                                <span>Athlete</span>
+                                <span>XP</span>
+                            </div>
+                            <div id="leaderboard-list" class="leaderboard-list">
+                                <!-- Leaderboard items rendered by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="skills" class="skills-section page">
+                <h2>Skill Tree</h2>
+                <p class="section-subtitle">Unlock new moves and master your body.</p>
+                <div class="skill-tree-wrapper">
+                    <div id="skill-tree-container" class="skill-tree-container">
+                        <!-- Nodes and lines will be rendered here by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <section id="map" class="map-section page">
+                <h2>Park Map</h2>
+                <p class="section-subtitle">Discover local training spots.</p>
+                <div class="map-wrapper">
+                    <div class="map-filters">
+                        <button class="filter-button active" data-filter="all">All Parks</button>
+                        <button class="filter-button" data-filter="claimed">Claimed</button>
+                        <button class="filter-button" data-filter="unclaimed">Unclaimed</button>
+                        <button class="filter-button" data-filter="my-team">My Team</button>
+                    </div>
+                    <div id="map-container" class="map-container"></div>
+
+                    <!-- Park Details Card (Hidden by default) -->
+                    <div id="park-details-card" class="park-details-card hidden glass-card">
+                        <button id="close-card" class="close-btn">&times;</button>
+                        <h3 id="park-name">Park Name</h3>
+                        <p id="park-desc">Description of the park.</p>
+                        <div class="park-meta">
+                            <span id="park-difficulty" class="tag">Intermediate</span>
+                            <span id="park-status" class="status-indicator">Active</span>
+                        </div>
+                        <h2>Training Session</h2>
+                        <p>Log your reps, complete quests, and level up.</p>
+                        <button id="navigate-btn" class="cta-button secondary full-width"
+                            style="margin-top: 10px;">Navigate to Park 📍</button>
+                    </div>
+
+                    <div class="xp-badge">
+                        <span class="xp-icon">⚡</span>
+                        <span class="xp-val">XP Boost Active</span>
+                    </div>
+
+                    <!-- Floating Navigation Controls -->
+                    <div id="navigation-controls" class="navigation-controls hidden glass-card">
+                        <div class="nav-info">
+                            <span class="nav-label">ETA</span>
+                            <span id="nav-eta" class="nav-value">-- min</span>
+                        </div>
+                        <div class="nav-actions">
+                            <button id="btn-continue-route" class="cta-button primary small">Continue Route</button>
+                            <button id="btn-cancel-route" class="cta-button secondary small">Cancel Route</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="training" class="page">
+                <h2>Training</h2>
+                <p class="section-subtitle">Velg en treningsøkt og start.</p>
+
+                <div class="workout-selection">
+                    <div class="workout-card glass-card" data-type="push">
+                        <span class="workout-icon">💪</span>
+                        <h3>Push Day</h3>
+                    </div>
+                    <div class="workout-card glass-card" data-type="pull">
+                        <span class="workout-icon">🏋️‍♂️</span>
+                        <h3>Pull Day</h3>
+                    </div>
+                    <div class="workout-card glass-card" data-type="full">
+                        <span class="workout-icon">🔥</span>
+                        <h3>Full Body</h3>
+                    </div>
+                    <div class="workout-card glass-card" data-type="skill">
+                        <span class="workout-icon">🎯</span>
+                        <h3>Skill Practice</h3>
+                    </div>
+                </div>
+
+                <div id="active-session-panel" class="active-session-panel hidden">
+                    <div class="session-header">
+                        <h3 id="session-title">Push Day</h3>
+                        <span class="session-timer">00:00</span>
+                    </div>
+
+                    <div id="exercise-list" class="exercise-list">
+                        <!-- Rendered by JS -->
+                    </div>
+
+                    <div class="session-summary-card glass-card hidden" id="session-summary">
+                        <h3>Session Complete!</h3>
+                        <div class="summary-stats">
+                            <div class="summary-stat">
+                                <span class="value" id="summary-reps">0</span>
+                                <span class="label">Reps</span>
+                            </div>
+                            <div class="summary-stat">
+                                <span class="value" id="summary-sets">0</span>
+                                <span class="label">Sets</span>
+                            </div>
+                            <div class="summary-stat highlight">
+                                <span class="value" id="summary-xp">+0 XP</span>
+                                <span class="label">Earned</span>
+                            </div>
+                        </div>
+                        <button id="close-session-btn" class="cta-button primary full-width">Finish</button>
+                    </div>
+
+                    <button id="complete-session-btn" class="cta-button primary full-width">Complete Session</button>
+                </div>
+            </section>
+
+            <!-- User Profile Section -->
+            <section id="profile" class="profile-section page">
+                <h2>User Profile</h2>
+                <div class="profile-container">
+                    <!-- Header: Avatar, Level, XP -->
+                    <div class="profile-header glass-card">
+                        <div class="profile-avatar-large">
+                            <span class="avatar-emoji">🥷</span>
+                            <div class="level-badge-circle">5</div>
+                        </div>
+                        <div class="profile-info">
+                            <h3 id="profile-rank-title">Street Warrior</h3>
+                            <div class="xp-progress">
+                                <div class="xp-info">
+                                    <span>Level 5</span>
+                                    <span id="profile-xp-text">12,450 / 15,000 XP</span>
+                                </div>
+                                <div class="xp-bar-container large">
+                                    <div id="profile-xp-bar" class="xp-bar" style="width: 83%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-box glass-card">
+                            <span class="stat-icon">🏋️</span>
+                            <span class="stat-value" id="stat-workouts">0</span>
+                            <span class="stat-label">Workouts</span>
+                        </div>
+                        <div class="stat-box glass-card">
+                            <span class="stat-icon">🔢</span>
+                            <span class="stat-value" id="stat-reps">0</span>
+                            <span class="stat-label">Total Reps</span>
+                        </div>
+                        <div class="stat-box glass-card">
+                            <span class="stat-icon">🔥</span>
+                            <span class="stat-value" id="stat-streak">0</span>
+                            <span class="stat-label">Day Streak</span>
+                        </div>
+                        <div class="stat-box glass-card">
+                            <span class="stat-icon">🏆</span>
+                            <span class="stat-value" id="stat-rank">#0</span>
+                            <span class="stat-label">Global Rank</span>
+                        </div>
+                    </div>
+
+                    <!-- Content Grid: Activity & Achievements -->
+                    <div class="profile-content-grid">
+                        <div class="recent-activity glass-card">
+                            <h3>Recent Activity</h3>
+                            <div id="activity-list" class="activity-list">
+                                <!-- Rendered by JS -->
+                            </div>
+                        </div>
+                        <div class="achievements glass-card">
+                            <h3>Achievements</h3>
+                            <div id="achievements-grid" class="achievements-grid">
+                                <!-- Rendered by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Body Weight Logger -->
+                    <div class="glass-card profile-section-card">
+                        <h3>Kroppsvekt</h3>
+                        <div id="body-logger-container"></div>
+                    </div>
+
+                    <!-- Profile Settings -->
+                    <div class="glass-card profile-section-card">
+                        <h3>Innstillinger</h3>
+                        <div id="profile-settings-container"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <script type="module" src="script.js"></script>
+
+    <!-- Onboarding Overlay -->
+    <div id="onboarding-overlay" class="modal hidden onboarding-overlay">
+        <div class="onboarding-card glass-card" id="onboarding-content">
+            <!-- Rendered by onboarding.js -->
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="history-modal" class="modal hidden">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h3>Workout History</h3>
+                <button id="close-history-btn" class="close-btn">×</button>
+            </div>
+            <div id="history-list" class="history-list">
+                <!-- Rendered by JS -->
+                <div class="empty-state">No completed workouts yet.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exercise Details Modal -->
+    <div id="exercise-modal" class="modal hidden">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h3 id="modal-exercise-title">Exercise Name</h3>
+                <button id="close-exercise-btn" class="close-btn">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="video-placeholder">
+                    <div class="play-icon">▶</div>
+                </div>
+                <div class="exercise-info">
+                    <div class="tags" id="modal-tags">
+                        <span class="tag">Chest</span>
+                        <span class="tag">Strength</span>
+                    </div>
+                    <p id="modal-description">Description of the exercise goes here.</p>
+                    <div class="difficulty-meter" id="modal-difficulty">
+                        <span>Difficulty:</span>
+                        <div class="stars">★★☆</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
