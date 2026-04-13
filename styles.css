@@ -2859,3 +2859,40 @@ spline-viewer {
     color: var(--text-muted);
     white-space: pre-wrap;
 }
+
+/* ---- Ferdig-knapp per sett ---- */
+.set-done-btn {
+    padding: 0.25rem 0.65rem;
+    border-radius: 8px;
+    border: 1.5px solid var(--glass-border);
+    background: none;
+    color: var(--text-muted);
+    font-family: var(--font-main);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.set-done-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.set-done-btn.done {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #000;
+}
+
+.set-row.set-done {
+    opacity: 0.6;
+}
+
+.exercise-complete-badge {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: 0.5px;
+}

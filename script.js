@@ -866,16 +866,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!exerciseList) return;
 
         exerciseList.innerHTML = currentSession.exercises.map((ex, ei) => {
-            const disabled = ex.done ? 'disabled' : '';
             const isOpen = expandedExercises.has(ei);
+            const doneSets = ex.setData.filter(s => s.done).length;
+            const allDone = doneSets === ex.setData.length;
 
             const setRows = ex.setData.map((s, si) => `
-                <div class="set-row">
+                <div class="set-row ${s.done ? 'set-done' : ''}">
                     <span class="set-num">${si + 1}</span>
                     <div class="counter-ui small">
-                        <button class="counter-btn" onclick="updateSetReps(${ei},${si},-1)" ${disabled}>−</button>
+                        <button class="counter-btn" onclick="updateSetReps(${ei},${si},-1)" ${s.done ? 'disabled' : ''}>−</button>
                         <span class="counter-val">${s.reps}</span>
-                        <button class="counter-btn" onclick="updateSetReps(${ei},${si},1)" ${disabled}>+</button>
+                        <button class="counter-btn" onclick="updateSetReps(${ei},${si},1)" ${s.done ? 'disabled' : ''}>+</button>
                     </div>
                     <input
                         type="number"
@@ -884,34 +885,37 @@ document.addEventListener('DOMContentLoaded', () => {
                         value="${s.kg}"
                         min="0" max="500" step="0.5"
                         placeholder="0"
-                        ${disabled}
+                        ${s.done ? 'disabled' : ''}
                     />
-                    <button class="remove-set-btn" onclick="removeSet(${ei},${si})" ${disabled} title="Slett sett">✕</button>
+                    <button class="set-done-btn ${s.done ? 'done' : ''}"
+                        onclick="markSetDone(${ei},${si})"
+                        title="${s.done ? 'Angre' : 'Marker sett ferdig'}">
+                        ${s.done ? '✓' : 'Ferdig'}
+                    </button>
+                    <button class="remove-set-btn" onclick="removeSet(${ei},${si})" ${s.done ? 'disabled' : ''} title="Slett sett">✕</button>
                 </div>
             `).join('');
 
             return `
-            <div class="exercise-item ${ex.done ? 'exercise-done' : ''} ${isOpen ? 'exercise-open' : ''}">
+            <div class="exercise-item ${allDone ? 'exercise-done' : ''} ${isOpen ? 'exercise-open' : ''}">
                 <div class="exercise-header" onclick="toggleExercise(${ei})">
                     <div class="exercise-info">
                         <h4>${ex.name}</h4>
-                        <span class="exercise-meta">${ex.setData.length} sett</span>
+                        <span class="exercise-meta">${doneSets}/${ex.setData.length} sett</span>
                     </div>
                     <div class="exercise-header-right">
-                        <button class="exercise-done-btn ${ex.done ? 'done' : ''}" onclick="event.stopPropagation(); markExerciseDone(${ei})">
-                            ${ex.done ? '✓ Ferdig' : 'Ferdig'}
-                        </button>
+                        ${allDone ? '<span class="exercise-complete-badge">✓ Ferdig</span>' : ''}
                         <span class="exercise-chevron">${isOpen ? '▲' : '▼'}</span>
                     </div>
                 </div>
                 <div class="exercise-body ${isOpen ? '' : 'hidden'}">
                     <div class="set-rows">
                         <div class="set-row-header">
-                            <span>Sett</span><span>Reps</span><span>Kg</span><span></span>
+                            <span>Sett</span><span>Reps</span><span>Kg</span><span></span><span></span>
                         </div>
                         ${setRows}
                     </div>
-                    <button class="add-set-btn" onclick="addSet(${ei})" ${disabled}>+ Legg til sett</button>
+                    <button class="add-set-btn" onclick="addSet(${ei})" ${allDone ? 'disabled' : ''}>+ Legg til sett</button>
                 </div>
             </div>`;
         }).join('');
@@ -935,9 +939,14 @@ document.addEventListener('DOMContentLoaded', () => {
         renderExercises();
     };
 
-    window.markExerciseDone = function (ei) {
+    window.markSetDone = function (ei, si) {
+        const s = currentSession.exercises[ei].setData[si];
+        s.done = !s.done;
+        // Auto-mark exercise done when all sets are done
         const ex = currentSession.exercises[ei];
-        ex.done = !ex.done;
+        ex.done = ex.setData.every(set => set.done);
+        // Auto-expand exercise if not all sets are done yet
+        if (!ex.done) expandedExercises.add(ei);
         renderExercises();
     };
 
