@@ -4,6 +4,7 @@ import { state, initState, saveState } from './js/state.js';
 import { checkAuth } from './js/auth.js';
 import { initOnboarding } from './js/onboarding.js';
 import { logExerciseSet, renderBodyLogger, renderProfileSettings } from './js/logger.js';
+import { checkAndUpdatePR, saveExerciseSession, getLastSession, renderProgressPage } from './js/progression.js';
 
 // ---- Page Navigation ----
 function showPage(pageId) {
@@ -15,9 +16,8 @@ function showPage(pageId) {
         a.classList.toggle('active', a.getAttribute('data-page') === pageId);
     });
 
-    if (pageId === 'map') {
-        setTimeout(invalidateMapSize, 150);
-    }
+    if (pageId === 'map') setTimeout(invalidateMapSize, 150);
+    if (pageId === 'progress') renderProgressPage();
 }
 window.showPage = showPage;
 
@@ -869,8 +869,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const isOpen = expandedExercises.has(ei);
             const doneSets = ex.setData.filter(s => s.done).length;
             const allDone = doneSets === ex.setData.length;
+            const lastSession = getLastSession(ex.id || ex.name);
 
-            const setRows = ex.setData.map((s, si) => `
+            const setRows = ex.setData.map((s, si) => {
+                const prev = lastSession?.sets?.[si];
+                const prevHint = prev
+                    ? `<span class="prev-hint" title="Forrige økt">${prev.reps} reps${prev.kg > 0 ? ` @ ${prev.kg}kg` : ''}</span>`
+                    : '';
+                return `
                 <div class="set-row ${s.done ? 'set-done' : ''}">
                     <span class="set-num">${si + 1}</span>
                     <div class="counter-ui small">
@@ -887,14 +893,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         placeholder="0"
                         ${s.done ? 'disabled' : ''}
                     />
+                    ${prevHint}
                     <button class="set-done-btn ${s.done ? 'done' : ''}"
                         onclick="markSetDone(${ei},${si})"
                         title="${s.done ? 'Angre' : 'Marker sett ferdig'}">
                         ${s.done ? '✓' : 'Ferdig'}
                     </button>
                     <button class="remove-set-btn" onclick="removeSet(${ei},${si})" ${s.done ? 'disabled' : ''} title="Slett sett">✕</button>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
 
             return `
             <div class="exercise-item ${allDone ? 'exercise-done' : ''} ${isOpen ? 'exercise-open' : ''}">
@@ -911,7 +918,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="exercise-body ${isOpen ? '' : 'hidden'}">
                     <div class="set-rows">
                         <div class="set-row-header">
-                            <span>Sett</span><span>Reps</span><span>Kg</span><span></span><span></span>
+                            <span>Sett</span><span>Reps</span><span>Kg</span>
+                            ${lastSession ? '<span class="prev-col">Forrige</span>' : '<span></span>'}
+                            <span></span><span></span>
                         </div>
                         ${setRows}
                     </div>
@@ -940,12 +949,35 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.markSetDone = function (ei, si) {
-        const s = currentSession.exercises[ei].setData[si];
-        s.done = !s.done;
-        // Auto-mark exercise done when all sets are done
         const ex = currentSession.exercises[ei];
+        const s  = ex.setData[si];
+        const wasAlreadyDone = s.done;
+        s.done = !s.done;
+
+        if (s.done) {
+            // +3 XP per sett
+            state.data.userProfile.xp += 3;
+
+            // PR-sjekk
+            const exId = ex.id || ex.name;
+            const isPR = checkAndUpdatePR(exId, ex.name, s.reps, s.kg || 0);
+            if (isPR) {
+                state.data.userProfile.xp += 25;
+                showToast('Ny rekord! 🏆', `${ex.name} — ${s.reps} reps${s.kg > 0 ? ` @ ${s.kg}kg` : ''}`);
+            }
+
+            checkLevelUp();
+            saveState();
+            renderProfile();
+        } else if (wasAlreadyDone) {
+            // Angret — trekk tilbake XP (uten PR-endring)
+            state.data.userProfile.xp = Math.max(0, state.data.userProfile.xp - 3);
+            saveState();
+            renderProfile();
+        }
+
+        // Auto-sett øvelse ferdig når alle sett er done
         ex.done = ex.setData.every(set => set.done);
-        // Auto-expand exercise if not all sets are done yet
         if (!ex.done) expandedExercises.add(ei);
         renderExercises();
     };
@@ -1009,14 +1041,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const allDone = doneExercises === currentSession.exercises.length;
-        const xpEarned = Math.max(5, (doneExercises * 8) + (doneSets * 2) + (allDone ? 15 : 0));
+        // XP per sett er allerede gitt i markSetDone — her gir vi kun session-bonus
+        const sessionBonus = allDone ? 50 : Math.max(5, doneExercises * 5);
+        const xpEarned = sessionBonus;
 
-        // Log each exercise
+        // Lagre per-øvelse historikk + logg
         currentSession.exercises.forEach(ex => {
             const sets = ex.setData || [];
-            const avgKg = sets.length ? sets.reduce((sum, s) => sum + (s.kg || 0), 0) / sets.length : 0;
+            const exId = ex.id || ex.name;
+            // Detaljert historikk (brukes av progression-siden)
+            if (sets.some(s => s.done)) {
+                saveExerciseSession(exId, ex.name, sets.filter(s => s.done));
+            }
+            // Legacy logg
+            const avgKg   = sets.length ? sets.reduce((sum, s) => sum + (s.kg || 0), 0) / sets.length : 0;
             const avgReps = sets.length ? sets.reduce((sum, s) => sum + (typeof s.reps === 'number' ? s.reps : 0), 0) / sets.length : 0;
-            logExerciseSet(ex.id || ex.name, ex.name, sets.length, Math.round(avgReps), avgKg);
+            logExerciseSet(exId, ex.name, sets.length, Math.round(avgReps), avgKg);
         });
 
         // Show Summary

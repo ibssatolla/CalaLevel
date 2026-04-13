@@ -2896,3 +2896,214 @@ spline-viewer {
     color: var(--primary);
     letter-spacing: 0.5px;
 }
+
+/* ---- Progress Page ---- */
+.progress-page {
+    padding-bottom: 3rem;
+}
+
+.progress-section-title {
+    margin: 2rem 0 1rem;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+}
+
+.progress-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+}
+
+.progress-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+/* PR Cards */
+.pr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.pr-card {
+    padding: 1.1rem;
+}
+
+.pr-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+    gap: 0.5rem;
+}
+
+.pr-card h4 {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.pr-date-badge {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.pr-stats {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.pr-stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.pr-val {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1.1;
+}
+
+.pr-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    letter-spacing: 0.3px;
+}
+
+/* Fremgang-liste */
+.progress-list {
+    padding: 0.5rem 0;
+    margin-bottom: 1rem;
+}
+
+.progress-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.2rem;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.progress-row:last-child {
+    border-bottom: none;
+}
+
+.progress-ex-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.progress-diffs {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.diff-badge {
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: 10px;
+}
+
+.diff-badge.positive {
+    background: rgba(0, 255, 136, 0.15);
+    color: #00ff88;
+}
+
+.diff-badge.negative {
+    background: rgba(255, 77, 77, 0.15);
+    color: #ff4d4d;
+}
+
+/* Historikk per øvelse */
+.history-exercises {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.history-exercise {
+    padding: 0;
+    overflow: hidden;
+}
+
+.history-exercise-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.2rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    list-style: none;
+}
+
+.history-exercise-summary::-webkit-details-marker {
+    display: none;
+}
+
+.history-exercise[open] .history-exercise-summary {
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.hist-count {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+.history-sessions {
+    padding: 0.5rem 0;
+}
+
+.history-session-row {
+    display: flex;
+    gap: 1rem;
+    padding: 0.6rem 1.2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    align-items: flex-start;
+}
+
+.history-session-row:last-child {
+    border-bottom: none;
+}
+
+.hist-date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    min-width: 90px;
+    flex-shrink: 0;
+}
+
+.hist-sets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.hist-set {
+    font-size: 0.8rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+    padding: 0.15rem 0.5rem;
+    color: var(--text-muted);
+}
+
+/* Forrige økt hint i set-row */
+.prev-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    opacity: 0.7;
+    white-space: nowrap;
+    font-style: italic;
+}
+
+.prev-col {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    opacity: 0.7;
+}

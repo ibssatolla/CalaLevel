@@ -16,6 +16,8 @@ const defaultState = {
     ],
     workoutHistory: [],
     myPrograms: [],
+    exerciseHistory: {},
+    personalRecords: {},
     userProfile: {
         name: 'Atlet',
         age: 20,
@@ -89,7 +91,9 @@ export function loadUserState() {
             if (!state.data.leaderboard) state.data.leaderboard = defaultState.leaderboard;
             if (!state.data.bodyLog) state.data.bodyLog = [];
             if (!state.data.exerciseLog) state.data.exerciseLog = {};
-            if (!state.data.myPrograms) state.data.myPrograms = [];
+            if (!state.data.myPrograms)       state.data.myPrograms = [];
+            if (!state.data.exerciseHistory)  state.data.exerciseHistory = {};
+            if (!state.data.personalRecords)  state.data.personalRecords = {};
             if (state.data.userProfile && !state.data.userProfile.achievements) {
                 state.data.userProfile.achievements = defaultState.userProfile.achievements;
             }
