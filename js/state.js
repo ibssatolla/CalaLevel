@@ -15,6 +15,7 @@ const defaultState = {
         { day: 'Sun', type: 'rest', title: 'Rest Day', exercises: [] }
     ],
     workoutHistory: [],
+    myPrograms: [],
     userProfile: {
         name: 'Atlet',
         age: 20,
@@ -88,6 +89,7 @@ export function loadUserState() {
             if (!state.data.leaderboard) state.data.leaderboard = defaultState.leaderboard;
             if (!state.data.bodyLog) state.data.bodyLog = [];
             if (!state.data.exerciseLog) state.data.exerciseLog = {};
+            if (!state.data.myPrograms) state.data.myPrograms = [];
             if (state.data.userProfile && !state.data.userProfile.achievements) {
                 state.data.userProfile.achievements = defaultState.userProfile.achievements;
             }

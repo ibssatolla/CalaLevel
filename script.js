@@ -473,31 +473,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Use the new startSession with custom exercises
         startSession(day.type, JSON.parse(JSON.stringify(day.exercises)));
-        showPage('training');
+        showPage('train');
     };
+
+    let currentLibFilter = 'all';
 
     function renderLibrary() {
         const grid = document.getElementById('library-grid');
         if (!grid) return;
 
-        // Show first 4 items for preview
-        const previewItems = exerciseLibrary.slice(0, 4);
+        const filtered = currentLibFilter === 'all'
+            ? exerciseLibrary
+            : exerciseLibrary.filter(ex => ex.type === currentLibFilter);
 
-        grid.innerHTML = previewItems.map(ex => `
-            <div class="exercise-card">
-                <div class="exercise-thumbnail">
-                    <div class="play-icon">▶</div>
-                </div>
+        const inBuilder = builderExercises.map(e => e.id);
+
+        grid.innerHTML = filtered.map(ex => {
+            const added = inBuilder.includes(ex.id);
+            return `
+            <div class="exercise-card ${added ? 'ex-added' : ''}">
                 <div class="exercise-details">
                     <h4>${ex.name}</h4>
                     <div class="exercise-tags">
                         <span class="ex-tag">${ex.type.toUpperCase()}</span>
                         <span class="ex-tag">Lvl ${ex.difficulty}</span>
+                        ${ex.tags.map(t => `<span class="ex-tag secondary">${t}</span>`).join('')}
                     </div>
                 </div>
-            </div>
-        `).join('');
+                <button class="add-to-program-btn ${added ? 'added' : ''}"
+                    onclick="toggleExerciseInBuilder('${ex.id}')"
+                    title="${added ? 'Fjern fra program' : 'Legg til program'}">
+                    ${added ? '✓' : '+'}
+                </button>
+            </div>`;
+        }).join('');
     }
+
+    // Library filter buttons
+    document.querySelectorAll('.lib-filter').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.lib-filter').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentLibFilter = btn.getAttribute('data-filter');
+            renderLibrary();
+        });
+    });
 
     // Generator Logic
     const generateBtn = document.getElementById('generate-program-btn');
@@ -546,9 +566,171 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('New Program Generated', 'Your weekly schedule has been updated!');
     }
 
+    // ---- Train tabs (Treningsøkt / Program) ----
+    document.querySelectorAll('.train-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.train-tab').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.train-tab-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('train-tab-' + btn.getAttribute('data-train-tab')).classList.add('active');
+        });
+    });
+
+    // ---- Program sub-tabs (Mine programmer / Program-forslag) ----
+    document.querySelectorAll('.program-subtab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.program-subtab').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.program-subtab-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('subtab-' + btn.getAttribute('data-subtab')).classList.add('active');
+        });
+    });
+
+    // ---- AI Coach Box (Program-forslag) ----
+    function renderAICoachBox() {
+        const box = document.getElementById('ai-coach-box');
+        const txt = document.getElementById('ai-coach-text');
+        const msg = state.data.aiCoachMessage;
+        if (box && txt && msg) {
+            txt.textContent = msg;
+            box.classList.remove('hidden');
+        }
+    }
+    renderAICoachBox();
+
+    // ---- Mine programmer (My Programs) ----
+    let builderExercises = [];
+    let builderActive = false;
+
+    const createProgramBtn = document.getElementById('create-program-btn');
+    const programBuilder   = document.getElementById('program-builder');
+    const saveProgramBtn   = document.getElementById('save-program-btn');
+    const cancelProgramBtn = document.getElementById('cancel-program-btn');
+
+    if (createProgramBtn) {
+        createProgramBtn.addEventListener('click', () => {
+            builderActive = true;
+            builderExercises = [];
+            document.getElementById('program-name-input').value = '';
+            programBuilder.classList.remove('hidden');
+            renderBuilderSelected();
+            renderLibrary();
+        });
+    }
+
+    if (cancelProgramBtn) {
+        cancelProgramBtn.addEventListener('click', () => {
+            builderActive = false;
+            builderExercises = [];
+            programBuilder.classList.add('hidden');
+            renderLibrary();
+        });
+    }
+
+    if (saveProgramBtn) {
+        saveProgramBtn.addEventListener('click', () => {
+            const name = document.getElementById('program-name-input').value.trim();
+            if (!name) { showToast('Mangler navn', 'Gi programmet et navn.'); return; }
+            if (builderExercises.length === 0) { showToast('Tomt program', 'Legg til minst én øvelse.'); return; }
+
+            if (!state.data.myPrograms) state.data.myPrograms = [];
+            state.data.myPrograms.push({
+                id: Date.now(),
+                name,
+                exercises: JSON.parse(JSON.stringify(builderExercises))
+            });
+            saveState();
+
+            builderActive = false;
+            builderExercises = [];
+            programBuilder.classList.add('hidden');
+            renderSavedPrograms();
+            renderLibrary();
+            showToast('Program lagret!', `"${name}" er klar til bruk.`);
+        });
+    }
+
+    window.toggleExerciseInBuilder = function (exId) {
+        if (!builderActive) return;
+        const ex = exerciseLibrary.find(e => e.id === exId);
+        if (!ex) return;
+        const idx = builderExercises.findIndex(e => e.id === exId);
+        if (idx === -1) {
+            builderExercises.push({ id: ex.id, name: ex.name, sets: 3, reps: ex.difficulty === 3 ? 5 : (ex.difficulty === 2 ? 8 : 12) });
+        } else {
+            builderExercises.splice(idx, 1);
+        }
+        renderBuilderSelected();
+        renderLibrary();
+    };
+
+    function renderBuilderSelected() {
+        const el = document.getElementById('builder-selected');
+        if (!el) return;
+        if (builderExercises.length === 0) {
+            el.innerHTML = '<p class="builder-empty-hint">Legg til øvelser fra biblioteket nedenfor</p>';
+            return;
+        }
+        el.innerHTML = builderExercises.map((ex, i) => `
+            <div class="builder-ex-row">
+                <span class="builder-ex-name">${ex.name}</span>
+                <span class="builder-ex-meta">${ex.sets} sett × ${ex.reps} reps</span>
+                <button class="remove-ex-btn" onclick="removeFromBuilder(${i})">✕</button>
+            </div>
+        `).join('');
+    }
+
+    window.removeFromBuilder = function (i) {
+        builderExercises.splice(i, 1);
+        renderBuilderSelected();
+        renderLibrary();
+    };
+
+    function renderSavedPrograms() {
+        const list = document.getElementById('saved-programs-list');
+        if (!list) return;
+        const programs = state.data.myPrograms || [];
+        if (programs.length === 0) {
+            list.innerHTML = '<p class="empty-hint">Ingen programmer ennå. Lag ditt første!</p>';
+            return;
+        }
+        list.innerHTML = programs.map((prog, i) => `
+            <div class="saved-program-card glass-card">
+                <div class="saved-program-info">
+                    <h4>${prog.name}</h4>
+                    <span class="saved-program-meta">${prog.exercises.length} øvelser</span>
+                </div>
+                <div class="saved-program-actions">
+                    <button class="cta-button primary small" onclick="startSavedProgram(${i})">Start</button>
+                    <button class="cta-button secondary small" onclick="deleteSavedProgram(${i})">Slett</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.startSavedProgram = function (i) {
+        const prog = (state.data.myPrograms || [])[i];
+        if (!prog) return;
+        startSession('custom', JSON.parse(JSON.stringify(prog.exercises)));
+        // Switch to Treningsøkt tab
+        document.querySelectorAll('.train-tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.train-tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelector('[data-train-tab="session"]').classList.add('active');
+        document.getElementById('train-tab-session').classList.add('active');
+        showToast('Program startet', prog.name);
+    };
+
+    window.deleteSavedProgram = function (i) {
+        if (!confirm('Slett dette programmet?')) return;
+        state.data.myPrograms.splice(i, 1);
+        saveState();
+        renderSavedPrograms();
+    };
+
     // Initialize Programs
     renderWeeklySchedule();
     renderLibrary();
+    renderSavedPrograms();
 
     // Training Flow Implementation
     const workoutData = {
@@ -974,8 +1156,8 @@ document.addEventListener('DOMContentLoaded', () => {
         workoutCards.forEach(c => c.classList.remove('active'));
         currentSession.active = false;
 
-        // Scroll back to top of training page
-        const trainingPage = document.getElementById('training');
+        // Scroll back to top of train page
+        const trainingPage = document.getElementById('train');
         if (trainingPage) trainingPage.scrollTop = 0;
     }
 });

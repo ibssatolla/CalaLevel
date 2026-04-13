@@ -2518,3 +2518,344 @@ spline-viewer {
     background: #0a0a0f;
     color: var(--text-main);
 }
+/* ---- Train Tabs ---- */
+.train-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 0;
+}
+
+.train-tab {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--font-main);
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    letter-spacing: 0.5px;
+}
+
+.train-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.train-tab-content {
+    display: none;
+}
+
+.train-tab-content.active {
+    display: block;
+}
+
+/* ---- Program Sub-tabs ---- */
+.program-subtabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.program-subtab {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    color: var(--text-muted);
+    font-family: var(--font-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.5rem 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.program-subtab.active {
+    background: var(--primary);
+    color: #000;
+    border-color: var(--primary);
+}
+
+.program-subtab-content {
+    display: none;
+}
+
+.program-subtab-content.active {
+    display: block;
+}
+
+/* ---- My Programs Header ---- */
+.my-programs-header,
+.suggestions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+/* ---- Saved Programs ---- */
+.saved-programs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.saved-program-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.2rem;
+}
+
+.saved-program-info h4 {
+    margin: 0 0 0.2rem;
+    font-size: 1rem;
+}
+
+.saved-program-meta {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.saved-program-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.empty-hint {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    padding: 1rem 0;
+}
+
+/* ---- Program Builder ---- */
+.program-builder {
+    padding: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.builder-header {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.program-name-input {
+    flex: 1;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 0.65rem 1rem;
+    color: var(--text-main);
+    font-family: var(--font-main);
+    font-size: 0.95rem;
+    outline: none;
+    min-width: 180px;
+}
+
+.program-name-input:focus {
+    border-color: var(--primary);
+}
+
+.builder-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.builder-selected {
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.builder-empty-hint {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    font-style: italic;
+}
+
+.builder-ex-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+}
+
+.builder-ex-name {
+    flex: 1;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.builder-ex-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.remove-ex-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0.2rem 0.4rem;
+    transition: color 0.2s;
+}
+
+.remove-ex-btn:hover {
+    color: #ff4d4d;
+}
+
+/* ---- Library (full) ---- */
+.library-section {
+    margin-top: 2rem;
+}
+
+.library-section h3 {
+    margin-bottom: 1rem;
+}
+
+.library-filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.lib-filter {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    color: var(--text-muted);
+    font-family: var(--font-main);
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.35rem 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.lib-filter.active {
+    background: rgba(0,242,255,0.15);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.library-grid.full {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.exercise-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.exercise-card.ex-added {
+    border-color: var(--primary);
+    background: rgba(0,242,255,0.06);
+}
+
+.exercise-details h4 {
+    margin: 0 0 0.3rem;
+    font-size: 0.95rem;
+}
+
+.exercise-tags {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.ex-tag {
+    font-size: 0.72rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.1);
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.ex-tag.secondary {
+    background: rgba(0,242,255,0.08);
+    color: var(--primary);
+}
+
+.add-to-program-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2px solid var(--glass-border);
+    background: none;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.add-to-program-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.add-to-program-btn.added {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #000;
+}
+
+/* ---- AI Coach Box ---- */
+.ai-coach-box {
+    padding: 1.2rem;
+    margin-bottom: 1.5rem;
+    border-left: 3px solid var(--primary);
+}
+
+.ai-coach-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.ai-coach-header h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--primary);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.ai-icon {
+    font-size: 1.1rem;
+}
+
+#ai-coach-text {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+    white-space: pre-wrap;
+}

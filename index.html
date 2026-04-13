@@ -24,13 +24,12 @@
                 <ul class="nav-links">
                     <li><a href="#" class="nav-link active" data-page="home">Home</a></li>
                     <li><a href="#" class="nav-link" data-page="skills">Skills</a></li>
-                    <li><a href="#" class="nav-link" data-page="programs">Programs</a></li>
+                    <li><a href="#" class="nav-link" data-page="train">Trening</a></li>
                     <li><a href="#" class="nav-link" data-page="community">Community</a></li>
                     <li><a href="#" class="nav-link" data-page="map">Map</a></li>
-                    <li><a href="#" class="nav-link" data-page="training">Training</a></li>
                     <li><a href="#" class="nav-link" data-page="profile">Profile</a></li>
                 </ul>
-                <button class="cta-button small" data-page="training">Get Started</button>
+                <button class="cta-button small" data-page="train">Get Started</button>
             </nav>
         </header>
 
@@ -49,7 +48,7 @@
                             skills, and compete on
                             the global leaderboard.</p>
                         <div class="hero-actions">
-                            <button class="cta-button primary" data-page="training">Start Training</button>
+                            <button class="cta-button primary" data-page="train">Start Training</button>
                             <button id="view-map-btn" class="cta-button secondary" data-page="map">View Map</button>
                         </div>
                     </div>
@@ -85,33 +84,6 @@
                 </div>
             </section>
 
-            <section id="programs" class="programs-section page">
-                <h2>Programs</h2>
-                <p class="section-subtitle">Din personlige treningsplan for uken.</p>
-
-                <div class="program-controls">
-                    <div class="week-selector">
-                        <span class="current-week">Denne uken</span>
-                    </div>
-                    <div style="display:flex; gap: 1rem;">
-                        <button id="view-history-btn" class="cta-button secondary small">Historikk</button>
-                        <button id="generate-program-btn" class="cta-button primary small">Generer ny plan</button>
-                    </div>
-                </div>
-
-                <div id="weekly-schedule" class="weekly-grid">
-                    <!-- Rendered by JS -->
-                </div>
-
-                <div class="library-preview">
-                    <div class="section-header-small">
-                        <h3>Øvelsesbibliotek</h3>
-                    </div>
-                    <div id="library-grid" class="library-grid">
-                        <!-- Rendered by JS -->
-                    </div>
-                </div>
-            </section>
 
             <section id="community" class="battles-section page">
                 <h2>Battle Arena</h2>
@@ -199,59 +171,153 @@
                 </div>
             </section>
 
-            <section id="training" class="page">
-                <h2>Training</h2>
-                <p class="section-subtitle">Velg en treningsøkt og start.</p>
+            <!-- Combined Train Section -->
+            <section id="train" class="page">
+                <!-- Top-level tabs: Treningsøkt / Program -->
+                <div class="train-tabs">
+                    <button class="train-tab active" data-train-tab="session">Treningsøkt</button>
+                    <button class="train-tab" data-train-tab="program">Program</button>
+                </div>
 
-                <div class="workout-selection">
-                    <div class="workout-card glass-card" data-type="push">
-                        <span class="workout-icon">💪</span>
-                        <h3>Push Day</h3>
+                <!-- TAB 1: Treningsøkt -->
+                <div id="train-tab-session" class="train-tab-content active">
+                    <h2>Training</h2>
+                    <p class="section-subtitle">Velg en treningsøkt og start.</p>
+
+                    <div class="workout-selection">
+                        <div class="workout-card glass-card" data-type="push">
+                            <span class="workout-icon">💪</span>
+                            <h3>Push Day</h3>
+                        </div>
+                        <div class="workout-card glass-card" data-type="pull">
+                            <span class="workout-icon">🏋️‍♂️</span>
+                            <h3>Pull Day</h3>
+                        </div>
+                        <div class="workout-card glass-card" data-type="full">
+                            <span class="workout-icon">🔥</span>
+                            <h3>Full Body</h3>
+                        </div>
+                        <div class="workout-card glass-card" data-type="skill">
+                            <span class="workout-icon">🎯</span>
+                            <h3>Skill Practice</h3>
+                        </div>
                     </div>
-                    <div class="workout-card glass-card" data-type="pull">
-                        <span class="workout-icon">🏋️‍♂️</span>
-                        <h3>Pull Day</h3>
-                    </div>
-                    <div class="workout-card glass-card" data-type="full">
-                        <span class="workout-icon">🔥</span>
-                        <h3>Full Body</h3>
-                    </div>
-                    <div class="workout-card glass-card" data-type="skill">
-                        <span class="workout-icon">🎯</span>
-                        <h3>Skill Practice</h3>
+
+                    <div id="active-session-panel" class="active-session-panel hidden">
+                        <div class="session-header">
+                            <h3 id="session-title">Push Day</h3>
+                            <span class="session-timer">00:00</span>
+                        </div>
+
+                        <div id="exercise-list" class="exercise-list">
+                            <!-- Rendered by JS -->
+                        </div>
+
+                        <div class="session-summary-card glass-card hidden" id="session-summary">
+                            <h3>Session Complete!</h3>
+                            <div class="summary-stats">
+                                <div class="summary-stat">
+                                    <span class="value" id="summary-reps">0</span>
+                                    <span class="label">Reps</span>
+                                </div>
+                                <div class="summary-stat">
+                                    <span class="value" id="summary-sets">0</span>
+                                    <span class="label">Sets</span>
+                                </div>
+                                <div class="summary-stat highlight">
+                                    <span class="value" id="summary-xp">+0 XP</span>
+                                    <span class="label">Earned</span>
+                                </div>
+                            </div>
+                            <button id="close-session-btn" class="cta-button primary full-width">Finish</button>
+                        </div>
+
+                        <button id="complete-session-btn" class="cta-button primary full-width">Complete Session</button>
                     </div>
                 </div>
 
-                <div id="active-session-panel" class="active-session-panel hidden">
-                    <div class="session-header">
-                        <h3 id="session-title">Push Day</h3>
-                        <span class="session-timer">00:00</span>
+                <!-- TAB 2: Program -->
+                <div id="train-tab-program" class="train-tab-content">
+                    <!-- Sub-tabs: Mine programmer / Program-forslag -->
+                    <div class="program-subtabs">
+                        <button class="program-subtab active" data-subtab="my-programs">Mine programmer</button>
+                        <button class="program-subtab" data-subtab="suggestions">Program-forslag</button>
                     </div>
 
-                    <div id="exercise-list" class="exercise-list">
-                        <!-- Rendered by JS -->
-                    </div>
+                    <!-- SUB-TAB A: Mine programmer -->
+                    <div id="subtab-my-programs" class="program-subtab-content active">
+                        <div class="my-programs-header">
+                            <h2>Mine programmer</h2>
+                            <button id="create-program-btn" class="cta-button primary small">+ Nytt program</button>
+                        </div>
+                        <p class="section-subtitle">Lag din egen treningsplan fra øvelsesbiblioteket.</p>
 
-                    <div class="session-summary-card glass-card hidden" id="session-summary">
-                        <h3>Session Complete!</h3>
-                        <div class="summary-stats">
-                            <div class="summary-stat">
-                                <span class="value" id="summary-reps">0</span>
-                                <span class="label">Reps</span>
+                        <!-- Saved programs list -->
+                        <div id="saved-programs-list" class="saved-programs-list">
+                            <!-- Rendered by JS -->
+                        </div>
+
+                        <!-- Program builder (hidden until + Nytt program clicked) -->
+                        <div id="program-builder" class="program-builder glass-card hidden">
+                            <div class="builder-header">
+                                <input id="program-name-input" type="text" placeholder="Navn på program..." class="program-name-input" />
+                                <div class="builder-actions">
+                                    <button id="save-program-btn" class="cta-button primary small">Lagre</button>
+                                    <button id="cancel-program-btn" class="cta-button secondary small">Avbryt</button>
+                                </div>
                             </div>
-                            <div class="summary-stat">
-                                <span class="value" id="summary-sets">0</span>
-                                <span class="label">Sets</span>
-                            </div>
-                            <div class="summary-stat highlight">
-                                <span class="value" id="summary-xp">+0 XP</span>
-                                <span class="label">Earned</span>
+                            <div id="builder-selected" class="builder-selected">
+                                <p class="builder-empty-hint">Legg til øvelser fra biblioteket nedenfor</p>
                             </div>
                         </div>
-                        <button id="close-session-btn" class="cta-button primary full-width">Finish</button>
+
+                        <!-- Full exercise library -->
+                        <div class="library-section">
+                            <h3>Øvelsesbibliotek</h3>
+                            <div class="library-filters">
+                                <button class="lib-filter active" data-filter="all">Alle</button>
+                                <button class="lib-filter" data-filter="push">Push</button>
+                                <button class="lib-filter" data-filter="pull">Pull</button>
+                                <button class="lib-filter" data-filter="legs">Bein</button>
+                                <button class="lib-filter" data-filter="core">Core</button>
+                                <button class="lib-filter" data-filter="skill">Skill</button>
+                            </div>
+                            <div id="library-grid" class="library-grid full">
+                                <!-- Rendered by JS -->
+                            </div>
+                        </div>
                     </div>
 
-                    <button id="complete-session-btn" class="cta-button primary full-width">Complete Session</button>
+                    <!-- SUB-TAB B: Program-forslag -->
+                    <div id="subtab-suggestions" class="program-subtab-content">
+                        <div class="suggestions-header">
+                            <h2>Program-forslag</h2>
+                            <div style="display:flex; gap: 1rem;">
+                                <button id="view-history-btn" class="cta-button secondary small">Historikk</button>
+                                <button id="generate-program-btn" class="cta-button primary small">Generer ny plan</button>
+                            </div>
+                        </div>
+                        <p class="section-subtitle">AI-tilpasset plan basert på dine svar fra oppstarten.</p>
+
+                        <!-- AI coach message -->
+                        <div id="ai-coach-box" class="ai-coach-box glass-card hidden">
+                            <div class="ai-coach-header">
+                                <span class="ai-icon">🤖</span>
+                                <h4>AI Coach</h4>
+                            </div>
+                            <p id="ai-coach-text"></p>
+                        </div>
+
+                        <div class="program-controls">
+                            <div class="week-selector">
+                                <span class="current-week">Denne uken</span>
+                            </div>
+                        </div>
+
+                        <div id="weekly-schedule" class="weekly-grid">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
                 </div>
             </section>
 
