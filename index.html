@@ -54,13 +54,52 @@
                         </div>
                     </div>
                     <div class="hero-visual">
-                        <!-- Spline 3D Viewer -->
-                        <script type="module"
-                            src="https://unpkg.com/@splinetool/viewer@1.9.59/build/spline-viewer.js"></script>
-                        <spline-viewer url="https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode"></spline-viewer>
-                        <div class="core-label"
-                            style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.5); font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase;">
-                            Progress Core</div>
+                        <div class="hero-cinematic">
+                            <!-- Bakgrunnsstriper -->
+                            <div class="cin-grid"></div>
+
+                            <!-- Senter-ring -->
+                            <div class="cin-ring-outer">
+                                <div class="cin-ring-inner">
+                                    <span class="cin-ring-label">LEVEL UP</span>
+                                </div>
+                            </div>
+
+                            <!-- Øvelses-tekst syklus -->
+                            <div class="cin-exercise-cycle">
+                                <span class="cin-ex" data-index="0">PUSH-UPS</span>
+                                <span class="cin-ex" data-index="1">PULL-UPS</span>
+                                <span class="cin-ex" data-index="2">DIPS</span>
+                                <span class="cin-ex" data-index="3">MUSCLE-UP</span>
+                            </div>
+
+                            <!-- Live stats overlays -->
+                            <div class="cin-stat top-left">
+                                <span class="cin-stat-val" id="cin-reps">0</span>
+                                <span class="cin-stat-label">REPS</span>
+                            </div>
+                            <div class="cin-stat top-right">
+                                <span class="cin-stat-val" id="cin-xp">+0</span>
+                                <span class="cin-stat-label">XP EARNED</span>
+                            </div>
+                            <div class="cin-stat bottom-left">
+                                <span class="cin-stat-val" id="cin-streak">0</span>
+                                <span class="cin-stat-label">DAY STREAK</span>
+                            </div>
+                            <div class="cin-stat bottom-right">
+                                <span class="cin-stat-val" id="cin-level">LVL 1</span>
+                                <span class="cin-stat-label">RANK</span>
+                            </div>
+
+                            <!-- XP progress bar -->
+                            <div class="cin-xp-bar-wrap">
+                                <div class="cin-xp-bar-fill" id="cin-xp-bar"></div>
+                                <span class="cin-xp-bar-label">XP PROGRESS</span>
+                            </div>
+
+                            <!-- Scanline overlay -->
+                            <div class="cin-scanlines"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="home-features">

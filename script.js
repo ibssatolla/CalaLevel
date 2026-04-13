@@ -1115,38 +1115,67 @@ document.addEventListener('DOMContentLoaded', () => {
         update3DCore();
     }
 
-    // 3D Core Integration (Spline)
+    // ---- Cinematic Hero Visual ----
+    const exercises = ['PUSH-UPS', 'PULL-UPS', 'DIPS', 'MUSCLE-UP', 'L-SIT', 'HANDSTAND'];
+    let cinExIdx = 0;
+
+    function cycleCinematicExercise() {
+        const items = document.querySelectorAll('.cin-ex');
+        if (!items.length) return;
+
+        const current = items[cinExIdx % items.length];
+        current.classList.add('exit');
+        setTimeout(() => {
+            current.classList.remove('active', 'exit');
+            cinExIdx = (cinExIdx + 1) % items.length;
+            const next = items[cinExIdx];
+            next.classList.add('active');
+        }, 500);
+    }
+
     function update3DCore() {
-        const viewer = document.querySelector('spline-viewer');
-        if (viewer) {
-            // Check if loaded, or wait for load
-            if (viewer.shadowRoot) {
-                applySplineVariables(viewer);
-            } else {
-                viewer.addEventListener('load-complete', () => {
-                    applySplineVariables(viewer);
-                });
-            }
+        const p = state.data.userProfile;
+
+        // Reps counter — count up to actual value
+        const cinReps  = document.getElementById('cin-reps');
+        const cinXP    = document.getElementById('cin-xp');
+        const cinLevel = document.getElementById('cin-level');
+        const cinBar   = document.getElementById('cin-xp-bar');
+        const streak   = document.getElementById('cin-streak');
+
+        if (cinReps)  animateCount(cinReps,  0, p.stats?.reps || 0,  1200);
+        if (cinXP)    cinXP.textContent    = `+${p.xp?.toLocaleString() || 0}`;
+        if (cinLevel) cinLevel.textContent = `LVL ${p.level || 1}`;
+        if (streak)   animateCount(streak,   0, p.stats?.streak || 0, 800);
+
+        if (cinBar) {
+            const levelThresholds = [0, 300, 900, 2200, 4500, 8000, 13000, 20000, 30000, 42000];
+            const lvl  = p.level || 0;
+            const curr = levelThresholds[Math.min(lvl, levelThresholds.length - 1)];
+            const next = levelThresholds[Math.min(lvl + 1, levelThresholds.length - 1)];
+            const pct  = lvl >= levelThresholds.length - 1 ? 100 : Math.min(100, ((p.xp - curr) / (next - curr)) * 100);
+            setTimeout(() => { cinBar.style.width = pct + '%'; }, 400);
         }
     }
 
-    function applySplineVariables(viewer) {
-        try {
-            const userProfile = state.data.userProfile;
-            // Assuming Spline scene has 'Level' and 'XP' variables
-            // Note: usage depends on Spline viewer version. 
-            // Standard approach for exposed variables:
-            if (viewer.setVariable) {
-                viewer.setVariable('Level', userProfile.level);
-                viewer.setVariable('XP', userProfile.xp);
-                console.log(`Updated 3D Core: Level ${userProfile.level}, XP ${userProfile.xp}`);
-            }
-        } catch (e) {
-            console.warn('Spline variable update failed:', e);
+    function animateCount(el, from, to, duration) {
+        if (to === 0) { el.textContent = '0'; return; }
+        const start = performance.now();
+        function step(now) {
+            const t = Math.min((now - start) / duration, 1);
+            const ease = 1 - Math.pow(1 - t, 3);
+            el.textContent = Math.round(from + (to - from) * ease).toLocaleString();
+            if (t < 1) requestAnimationFrame(step);
         }
+        requestAnimationFrame(step);
     }
 
-    // Initialize 3D Core
+    // Start exercise cycle
+    const firstEx = document.querySelector('.cin-ex');
+    if (firstEx) firstEx.classList.add('active');
+    setInterval(cycleCinematicExercise, 2200);
+
+    // Initialize cinematic stats
     update3DCore();
 
     // History UI Logic
