@@ -1830,9 +1830,8 @@ spline-viewer {
 
 .exercise-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    cursor: pointer;
+    gap: 10px;
     user-select: none;
 }
 
@@ -3953,3 +3952,332 @@ spline-viewer {
 .scanner-count.rep-pop {
     animation: repPop 0.3s cubic-bezier(0.34,1.56,0.64,1);
 }
+
+/* ============================================
+   EXERCISE DETAIL SCREEN
+   ============================================ */
+
+.ex-detail-body {
+    padding: 0 16px calc(var(--tab-height) + 24px);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ---- Media area ---- */
+.ex-detail-media {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--ios-bg3);
+    margin-top: 12px;
+}
+
+.ex-detail-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+}
+
+.ex-detail-thumb-bg {
+    width: 90px;
+    height: 90px;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.ex-detail-thumb-emoji {
+    font-size: 2.8rem;
+    line-height: 1;
+}
+
+.ex-play-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 24px;
+    color: #fff;
+    font-family: var(--font-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 10px 20px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.ex-play-btn:active {
+    transform: scale(0.95);
+    background: rgba(255,255,255,0.2);
+}
+
+.ex-detail-loading {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--ios-label2);
+    font-size: 0.9rem;
+}
+
+.ex-video-spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid rgba(255,255,255,0.1);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.ex-detail-iframe-wrap {
+    width: 100%;
+    height: 100%;
+}
+
+.ex-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+
+/* ---- AI bar ---- */
+.ex-ai-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    gap: 12px;
+}
+
+.ex-ai-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+.ex-ai-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.ex-ai-label {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--ios-label);
+}
+
+.ex-ai-sub {
+    font-size: 0.72rem;
+    color: var(--ios-label2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---- Info card ---- */
+.ex-detail-info-card {
+    padding: 14px 16px;
+}
+
+.ex-info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.ex-info-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.ex-info-val {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--ios-label);
+    line-height: 1.1;
+}
+
+.ex-info-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--ios-label2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ex-info-divider {
+    width: 1px;
+    height: 36px;
+    background: var(--ios-separator);
+}
+
+/* ---- Tags ---- */
+.ex-detail-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ex-tag-pill {
+    background: var(--ios-bg3);
+    border: 0.5px solid var(--ios-separator);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ios-label);
+}
+
+/* ---- Description ---- */
+.ex-detail-desc {
+    padding: 14px 16px;
+}
+
+.ex-detail-desc p {
+    font-size: 0.9rem;
+    color: var(--ios-label2);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* ============================================
+   LIBRARY ROWS (thumbnail-based list)
+   ============================================ */
+
+#library-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.lib-ex-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--ios-bg2);
+    border: 0.5px solid var(--ios-separator);
+    border-radius: var(--radius-card);
+    padding: 10px 12px;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.lib-ex-row:active {
+    background: var(--ios-bg3);
+}
+
+.lib-ex-row.ex-added {
+    border-color: var(--primary);
+    background: rgba(0,242,255,0.04);
+}
+
+.lib-ex-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: transform 0.15s;
+}
+
+.lib-ex-thumb:active { transform: scale(0.92); }
+
+.lib-ex-info {
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.lib-ex-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ios-label);
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lib-ex-meta {
+    font-size: 0.75rem;
+    color: var(--ios-label2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.lib-ex-diff-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.lib-ex-add-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ios-separator);
+    background: none;
+    color: var(--ios-label2);
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.lib-ex-add-btn:active {
+    transform: scale(0.9);
+}
+
+.lib-ex-add-btn.added {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #000;
+}
+
+/* ---- Session exercise thumbnail ---- */
+.ex-session-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: transform 0.15s;
+    margin-right: 4px;
+}
+
+.ex-session-thumb:active { transform: scale(0.9); }

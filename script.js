@@ -8,17 +8,29 @@ import { checkAndUpdatePR, saveExerciseSession, getLastSession, renderProgressPa
 import { startChallengeScanner, stopScanner } from './js/scanner.js';
 
 // ---- Page Navigation ----
+let _previousPage = 'home';
+
 function showPage(pageId) {
+    const current = document.querySelector('.page.active');
+    if (current && current.id !== pageId) _previousPage = current.id;
+
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     const target = document.getElementById(pageId);
     if (target) target.classList.add('active');
 
+    // Tab bar: only highlight if pageId matches a real tab
     document.querySelectorAll('.ios-tab').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-page') === pageId);
     });
 
     if (pageId === 'map') setTimeout(invalidateMapSize, 150);
     if (pageId === 'progress') renderProgressPage();
+
+    // Stop any playing video when leaving exercise-detail
+    if (pageId !== 'exercise-detail') {
+        const iframeWrap = document.getElementById('ex-detail-iframe-wrap');
+        if (iframeWrap) iframeWrap.innerHTML = '';
+    }
 }
 window.showPage = showPage;
 
@@ -476,36 +488,331 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Programs & Generator Implementation
+    // Type → gradient color mapping
+    const typeColors = {
+        push:  'linear-gradient(135deg, #ff6535, #ff9500)',
+        pull:  'linear-gradient(135deg, #30d158, #0a84ff)',
+        legs:  'linear-gradient(135deg, #0a84ff, #5856d6)',
+        core:  'linear-gradient(135deg, #ff453a, #ff375f)',
+        skill: 'linear-gradient(135deg, #bf5af2, #9b59b6)',
+        full:  'linear-gradient(135deg, #ffd60a, #ff9f0a)',
+    };
+
     const exerciseLibrary = [
-        { id: 'push1', name: 'Push-ups', type: 'push', difficulty: 1, videoUrl: '#', tags: ['Chest', 'Triceps'] },
-        { id: 'push2', name: 'Dips', type: 'push', difficulty: 2, videoUrl: '#', tags: ['Triceps', 'Chest'] },
-        { id: 'push3', name: 'Pike Push-ups', type: 'push', difficulty: 2, videoUrl: '#', tags: ['Shoulders'] },
-        { id: 'push4', name: 'Archer Push-ups', type: 'push', difficulty: 3, videoUrl: '#', tags: ['Chest', 'Core'] },
-        { id: 'push5', name: 'Diamond Push-ups', type: 'push', difficulty: 2, videoUrl: '#', tags: ['Triceps'] },
-        { id: 'push6', name: 'Pseudo Planche Push-ups', type: 'push', difficulty: 3, videoUrl: '#', tags: ['Shoulders', 'Chest'] },
-        { id: 'pull1', name: 'Pull-ups', type: 'pull', difficulty: 2, videoUrl: '#', tags: ['Back', 'Biceps'] },
-        { id: 'pull2', name: 'Chin-ups', type: 'pull', difficulty: 2, videoUrl: '#', tags: ['Biceps', 'Back'] },
-        { id: 'pull3', name: 'Australian Pull-ups', type: 'pull', difficulty: 1, videoUrl: '#', tags: ['Back'] },
-        { id: 'pull4', name: 'Muscle-up', type: 'pull', difficulty: 3, videoUrl: '#', tags: ['Explosive'] },
-        { id: 'pull5', name: 'Commando Pull-ups', type: 'pull', difficulty: 2, videoUrl: '#', tags: ['Back', 'Biceps'] },
-        { id: 'pull6', name: 'High Pull-ups', type: 'pull', difficulty: 3, videoUrl: '#', tags: ['Explosive'] },
-        { id: 'legs1', name: 'Squats', type: 'legs', difficulty: 1, videoUrl: '#', tags: ['Quads', 'Glutes'] },
-        { id: 'legs2', name: 'Lunges', type: 'legs', difficulty: 1, videoUrl: '#', tags: ['Legs'] },
-        { id: 'legs3', name: 'Jump Squats', type: 'legs', difficulty: 2, videoUrl: '#', tags: ['Explosive'] },
-        { id: 'legs4', name: 'Pistol Squats', type: 'legs', difficulty: 3, videoUrl: '#', tags: ['Balance'] },
-        { id: 'legs5', name: 'Bulgarian Split Squats', type: 'legs', difficulty: 2, videoUrl: '#', tags: ['Legs'] },
-        { id: 'legs6', name: 'Calf Raises', type: 'legs', difficulty: 1, videoUrl: '#', tags: ['Calves'] },
-        { id: 'core1', name: 'Plank', type: 'core', difficulty: 1, videoUrl: '#', tags: ['Abs'] },
-        { id: 'core2', name: 'Leg Raises', type: 'core', difficulty: 2, videoUrl: '#', tags: ['Abs'] },
-        { id: 'core3', name: 'L-Sit', type: 'core', difficulty: 3, videoUrl: '#', tags: ['Core'] },
-        { id: 'core4', name: 'Russian Twists', type: 'core', difficulty: 1, videoUrl: '#', tags: ['Obliques'] },
-        { id: 'skill1', name: 'Handstand Wall Hold', type: 'skill', difficulty: 2, videoUrl: '#', tags: ['Balance'] },
-        { id: 'skill2', name: 'L-Sit Prep', type: 'skill', difficulty: 2, videoUrl: '#', tags: ['Core'] },
-        { id: 'skill3', name: 'Crow Pose', type: 'skill', difficulty: 2, videoUrl: '#', tags: ['Balance'] },
-        { id: 'skill4', name: 'Skin the Cat', type: 'skill', difficulty: 2, videoUrl: '#', tags: ['Mobility'] }
+        { id: 'push1', name: 'Push-ups', type: 'push', difficulty: 1,
+          emoji: '💪', sets: 4, reps: 12,
+          videoUrl: 'https://www.youtube.com/embed/IODxDxX7oi4?rel=0&modestbranding=1',
+          videoPrompt: 'Realistisk AI-animasjon av en person som utfører push-ups med perfekt teknikk — rett rygg, full bevegelse',
+          desc: 'Grunnleggende skyveøvelse. Hold kroppen rett, senk brystet mot gulvet og press deg opp med full armstrekk.',
+          tags: ['Bryst', 'Triceps', 'Skuldre'] },
+
+        { id: 'push2', name: 'Dips', type: 'push', difficulty: 2,
+          emoji: '🤸', sets: 3, reps: 10,
+          videoUrl: 'https://www.youtube.com/embed/yN6Q1UI_xho?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av person som utfører dips på parallelle stenger med kontrollert teknikk',
+          desc: 'Utfordrende skyveøvelse på parallelle stenger. Senk deg ned til 90° i albuene og press tilbake opp.',
+          tags: ['Triceps', 'Bryst', 'Skuldre'] },
+
+        { id: 'push3', name: 'Pike Push-ups', type: 'push', difficulty: 2,
+          emoji: '🔺', sets: 3, reps: 8,
+          videoUrl: 'https://www.youtube.com/embed/0rzSlCaBBcw?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av person i pike-posisjon som utfører push-ups for skuldertrening',
+          desc: 'Hoftene opp i en invertert V-form. Øvelsen retter fokus mot skuldrene som forberedelse til håndstand push-up.',
+          tags: ['Skuldre', 'Triceps'] },
+
+        { id: 'push4', name: 'Archer Push-ups', type: 'push', difficulty: 3,
+          emoji: '🏹', sets: 3, reps: 6,
+          videoUrl: 'https://www.youtube.com/embed/N7KeZhTkNS0?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av archer push-ups der vekten flyttes fra side til side',
+          desc: 'En arm holder støtte mens den andre strekkes ut. Bygger ensidingstyrke som leder mot én-arms push-up.',
+          tags: ['Bryst', 'Core', 'Stabilitet'] },
+
+        { id: 'push5', name: 'Diamond Push-ups', type: 'push', difficulty: 2,
+          emoji: '💎', sets: 3, reps: 10,
+          videoUrl: 'https://www.youtube.com/embed/J0DXRMsC2vk?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av diamond push-ups med hendene i diamantform for tricepsaktivering',
+          desc: 'Hendene i diamantform under brystet. Maksimal tricepsaktivering — en av de beste øvelsene for bakside overarm.',
+          tags: ['Triceps', 'Bryst'] },
+
+        { id: 'push6', name: 'Pseudo Planche Push-ups', type: 'push', difficulty: 3,
+          emoji: '⚡', sets: 3, reps: 6,
+          videoUrl: 'https://www.youtube.com/embed/b0X8UJvEVHg?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av pseudo planche push-ups med hendene pekende bakover',
+          desc: 'Hendene pekende bakover nær hoftene. Ekstrem skulder- og brystaktivering. Direkte progresjon mot planche.',
+          tags: ['Skuldre', 'Bryst', 'Planche'] },
+
+        { id: 'pull1', name: 'Pull-ups', type: 'pull', difficulty: 2,
+          emoji: '🧗', sets: 4, reps: 8,
+          videoUrl: 'https://www.youtube.com/embed/eGo4IYlbE5g?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av en person som utfører clean pull-ups med full bevegelse fra hengende posisjon',
+          desc: 'Overgrep, skulderbredde. Heng med rett arm, trekk haka over stangen. En av de viktigste trekkøvelsene i calisthenics.',
+          tags: ['Rygg', 'Biceps', 'Core'] },
+
+        { id: 'pull2', name: 'Chin-ups', type: 'pull', difficulty: 2,
+          emoji: '💪', sets: 3, reps: 8,
+          videoUrl: 'https://www.youtube.com/embed/RJLBF5OFZ7A?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av chin-ups med undergrep som aktiverer biceps og rygg',
+          desc: 'Undergrep, noe smalere enn skulderbredde. Mer bicepsaktivering enn pull-ups. God startøvelse for pulling-bevegelser.',
+          tags: ['Biceps', 'Rygg'] },
+
+        { id: 'pull3', name: 'Australian Pull-ups', type: 'pull', difficulty: 1,
+          emoji: '🌊', sets: 3, reps: 12,
+          videoUrl: 'https://www.youtube.com/embed/J3QpAHMmf-w?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av Australian pull-ups under en lav stang',
+          desc: 'Kroppen skrå under en lav stang. Begynnerøvelse for pulling. Vanskelighetsgrad justeres ved å endre vinkel.',
+          tags: ['Rygg', 'Biceps'] },
+
+        { id: 'pull4', name: 'Muscle-up', type: 'pull', difficulty: 3,
+          emoji: '👑', sets: 3, reps: 5,
+          videoUrl: 'https://www.youtube.com/embed/T3NM1EbIXNk?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av en eksplosiv muscle-up der atleten trekker seg over stangen',
+          desc: 'Pull-up kombinert med dip i én flyt. Krever eksplosiv styrke, timing og teknikk. Grenseøvelse i calisthenics.',
+          tags: ['Eksplosiv', 'Rygg', 'Triceps'] },
+
+        { id: 'pull5', name: 'Commando Pull-ups', type: 'pull', difficulty: 2,
+          emoji: '🪖', sets: 3, reps: 8,
+          videoUrl: 'https://www.youtube.com/embed/Mv1MuAM4w48?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av commando pull-ups der hodet veksler side for side under stangen',
+          desc: 'Parallelt grep (en hånd foran, en bak). Hodet veksler side for side. Aktiverer rygg fra flere vinkler.',
+          tags: ['Rygg', 'Biceps', 'Stabilitet'] },
+
+        { id: 'pull6', name: 'High Pull-ups', type: 'pull', difficulty: 3,
+          emoji: '🚀', sets: 3, reps: 5,
+          videoUrl: 'https://www.youtube.com/embed/mEJ5D0NN8kE?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av eksplosive high pull-ups der brystet treffer stangen',
+          desc: 'Eksplosive pull-ups der brystet treffer stangen. Bygger den eksplosive kraften som trengs for muscle-up.',
+          tags: ['Eksplosiv', 'Rygg'] },
+
+        { id: 'legs1', name: 'Squats', type: 'legs', difficulty: 1,
+          emoji: '🦵', sets: 4, reps: 15,
+          videoUrl: 'https://www.youtube.com/embed/gsNoPYwWXik?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av perfekte bodyweight squats med dypt knebøy og rett rygg',
+          desc: 'Grunnleggende kneøvelse. Foten skulderbredde, knær over tær. Senk til låret er parallelt med gulvet.',
+          tags: ['Quads', 'Seter', 'Hamstrings'] },
+
+        { id: 'legs2', name: 'Lunges', type: 'legs', difficulty: 1,
+          emoji: '🚶', sets: 3, reps: 12,
+          videoUrl: 'https://www.youtube.com/embed/QOVaHwm-Q6U?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av vekselvise lunges med kontroll og balanse',
+          desc: 'Vekselvise utfall fremover. Fremre kne over tåen, bakre kne nær gulvet. Godt for stabilitet og ensidig styrke.',
+          tags: ['Quads', 'Seter', 'Balanse'] },
+
+        { id: 'legs3', name: 'Jump Squats', type: 'legs', difficulty: 2,
+          emoji: '💥', sets: 3, reps: 15,
+          videoUrl: 'https://www.youtube.com/embed/Azf_KJZg1bM?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av eksplosive jump squats med høyt hopp og myk landing',
+          desc: 'Eksplosiv versjon av squat. Hopp så høyt som mulig fra bunnposisjon. Lander mykt med bøyde knær.',
+          tags: ['Eksplosiv', 'Quads', 'Kondisjon'] },
+
+        { id: 'legs4', name: 'Pistol Squats', type: 'legs', difficulty: 3,
+          emoji: '🎯', sets: 3, reps: 5,
+          videoUrl: 'https://www.youtube.com/embed/vq5-vdgJc0I?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av én-bens squat med full bevegelighet og kontroll',
+          desc: 'Én-bens knebøy til bunnposisjon. Krever ekstrem styrke, mobilitet og balanse. Eliteøvelse for underkropp.',
+          tags: ['Quads', 'Balanse', 'Mobilitet'] },
+
+        { id: 'legs5', name: 'Bulgarian Split Squats', type: 'legs', difficulty: 2,
+          emoji: '🏋️', sets: 3, reps: 10,
+          videoUrl: 'https://www.youtube.com/embed/2C-uNgKwPLE?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av Bulgarian split squats med bakfoten på en boks',
+          desc: 'Bakfoten på en forhøyet flate. En av de mest effektive øvelsene for ensidig beinstyrke og hoftemobilitet.',
+          tags: ['Quads', 'Seter', 'Stabilitet'] },
+
+        { id: 'legs6', name: 'Calf Raises', type: 'legs', difficulty: 1,
+          emoji: '🦶', sets: 4, reps: 20,
+          videoUrl: 'https://www.youtube.com/embed/gwLzBv0b9h4?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av calf raises på kanten av et trinn med full bevegelighet',
+          desc: 'Stå på kanten av et trinn. Senk hælen under, løft deg opp på tå. Fullt bevegelsesutslag for best effekt.',
+          tags: ['Legger'] },
+
+        { id: 'core1', name: 'Plank', type: 'core', difficulty: 1,
+          emoji: '🧱', sets: 3, reps: '45s',
+          videoUrl: 'https://www.youtube.com/embed/pSHjTRCQxIw?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av perfekt plank-posisjon med rett linje fra hode til hæl',
+          desc: 'Albuene under skuldrene, kroppen i rett linje. Hold posisjonen uten å synke i hoftene. Basisfundament for core.',
+          tags: ['Mage', 'Core', 'Stabilitet'] },
+
+        { id: 'core2', name: 'Leg Raises', type: 'core', difficulty: 2,
+          emoji: '🦵', sets: 3, reps: 12,
+          videoUrl: 'https://www.youtube.com/embed/_03pCKOv4l4?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av kontrollerte leg raises hengende fra en stang',
+          desc: 'Heng fra en stang, løft bena rette opp til 90°. Senk kontrollert. Svært effektiv for nedre magemuskler.',
+          tags: ['Nedre mage', 'Hip flexors'] },
+
+        { id: 'core3', name: 'L-Sit', type: 'core', difficulty: 3,
+          emoji: '⚖️', sets: 4, reps: '15s',
+          videoUrl: 'https://www.youtube.com/embed/IUZyvFz2-4Q?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av person som holder L-sit med bena horisontalt ut fra kroppen',
+          desc: 'Hold seg på hendene med bena vannrett foran. Kombinerer trykk, trekkstyrke og ekstrem corestyrke. Skill-øvelse.',
+          tags: ['Core', 'Triceps', 'Hip flexors'] },
+
+        { id: 'core4', name: 'Russian Twists', type: 'core', difficulty: 1,
+          emoji: '🌀', sets: 3, reps: 20,
+          videoUrl: 'https://www.youtube.com/embed/wkD8rjkodUI?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av Russian twists med kontrollert rotasjon fra side til side',
+          desc: 'Sitt i 45° vinkel, roter overkroppen fra side til side. God øvelse for obliques og rotasjonsstyrke.',
+          tags: ['Obliques', 'Rotasjon'] },
+
+        { id: 'skill1', name: 'Handstand Wall Hold', type: 'skill', difficulty: 2,
+          emoji: '🤸', sets: 4, reps: '20s',
+          videoUrl: 'https://www.youtube.com/embed/KTvIDbjcFk8?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av en person i håndstandsposisjon mot en vegg med rett linjering',
+          desc: 'Håndstand med støtte fra vegg. Bygg styrke og balanse for frittliggende håndstand. Hendene 15cm fra veggen.',
+          tags: ['Balanse', 'Skuldre', 'Håndstand'] },
+
+        { id: 'skill2', name: 'L-Sit Prep', type: 'skill', difficulty: 2,
+          emoji: '📐', sets: 3, reps: '20s',
+          videoUrl: 'https://www.youtube.com/embed/3g_O-yl2Ojw?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av L-sit forberedelse med knær bøyd og gradvis forlengelse',
+          desc: 'Bygg styrken til L-sit gradvis: start med bøyde knær, forleng bena etterhvert som styrken øker.',
+          tags: ['Core', 'L-Sit', 'Kompresjon'] },
+
+        { id: 'skill3', name: 'Crow Pose', type: 'skill', difficulty: 2,
+          emoji: '🐦', sets: 3, reps: '15s',
+          videoUrl: 'https://www.youtube.com/embed/bHr0X9fHxfs?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av Crow Pose — balanse på hendene med knærne mot overarmene',
+          desc: 'Hendene på gulvet, knær mot overarmene. Hold balansen. Grunnleggende håndbalanse — inngang til planche.',
+          tags: ['Balanse', 'Core', 'Planche'] },
+
+        { id: 'skill4', name: 'Skin the Cat', type: 'skill', difficulty: 2,
+          emoji: '🎠', sets: 3, reps: 6,
+          videoUrl: 'https://www.youtube.com/embed/2q1VQ5bH7qg?rel=0&modestbranding=1',
+          videoPrompt: 'AI-animasjon av Skin the Cat på ringer med fullrotasjon og kontroll',
+          desc: 'Roter kroppen gjennom og bakover på ringer. Fantastisk for skulderfleksibilitet og bakover-styrke.',
+          tags: ['Mobilitet', 'Skuldre', 'Ringer'] },
     ];
 
-    // Helper to build a workout from library
+    // ---- Exercise Detail Screen ----
+    const difficultyLabel = ['', 'Nybegynner', 'Middels', 'Avansert'];
+    const difficultyColor = ['', '#30d158', '#ffd60a', '#ff453a'];
+
+    function showExerciseDetail(exId, fromPage) {
+        const ex = exerciseLibrary.find(e => e.id === exId);
+        if (!ex) return;
+
+        if (fromPage) _previousPage = fromPage;
+
+        // Header
+        document.getElementById('exercise-detail-title').textContent = ex.name;
+
+        // Thumbnail background
+        const bg = document.getElementById('ex-detail-thumb-bg');
+        bg.style.background = typeColors[ex.type] || typeColors.push;
+        document.getElementById('ex-detail-thumb-emoji').textContent = ex.emoji || '💪';
+
+        // Reset video states
+        document.getElementById('ex-detail-placeholder').classList.remove('hidden');
+        document.getElementById('ex-detail-loading').classList.add('hidden');
+        const iframeWrap = document.getElementById('ex-detail-iframe-wrap');
+        iframeWrap.classList.add('hidden');
+        iframeWrap.innerHTML = '';
+
+        // AI bar subtitle
+        document.getElementById('ex-ai-sub').textContent =
+            ex.videoPrompt ? ex.videoPrompt.substring(0, 50) + '…' : 'Generer personlig demo';
+
+        // Info card
+        const sets = ex.sets || 3;
+        const reps = ex.reps || '—';
+        document.getElementById('ex-detail-info-card').innerHTML = `
+            <div class="ex-info-row">
+                <div class="ex-info-stat">
+                    <span class="ex-info-val">${sets}</span>
+                    <span class="ex-info-label">Sett</span>
+                </div>
+                <div class="ex-info-divider"></div>
+                <div class="ex-info-stat">
+                    <span class="ex-info-val">${reps}</span>
+                    <span class="ex-info-label">Reps</span>
+                </div>
+                <div class="ex-info-divider"></div>
+                <div class="ex-info-stat">
+                    <span class="ex-info-val" style="color:${difficultyColor[ex.difficulty] || '#fff'}">${difficultyLabel[ex.difficulty] || '—'}</span>
+                    <span class="ex-info-label">Nivå</span>
+                </div>
+            </div>`;
+
+        // Tags
+        document.getElementById('ex-detail-tags').innerHTML =
+            (ex.tags || []).map(t => `<span class="ex-tag-pill">${t}</span>`).join('');
+
+        // Description
+        document.getElementById('ex-detail-desc-text').textContent =
+            ex.desc || 'Ingen beskrivelse tilgjengelig.';
+
+        // Play button: load YouTube on click
+        const playBtn = document.getElementById('ex-play-btn');
+        playBtn.onclick = () => loadExerciseVideo(ex);
+
+        // AI generate button
+        document.getElementById('ex-ai-generate-btn').onclick = () => simulateAIVideo(ex);
+
+        // Add to session button
+        const addBtn = document.getElementById('ex-detail-add-btn');
+        addBtn.onclick = () => {
+            if (!currentSession.active) {
+                showToast('Ingen aktiv økt', 'Start en treningsøkt først.');
+                return;
+            }
+            const newEx = { id: ex.id, name: ex.name, sets: ex.sets || 3, reps: ex.reps || 8 };
+            currentSession.exercises.push(toSetData(newEx));
+            expandedExercises.add(currentSession.exercises.length - 1);
+            renderExercises();
+            showPage(_previousPage || 'train');
+            showToast('Lagt til!', ex.name + ' er lagt til i økten.');
+        };
+
+        showPage('exercise-detail');
+    }
+    window.showExerciseDetail = showExerciseDetail;
+
+    function loadExerciseVideo(ex) {
+        if (!ex.videoUrl || ex.videoUrl === '#') {
+            showToast('Ingen video', 'Video ikke tilgjengelig for denne øvelsen.');
+            return;
+        }
+        document.getElementById('ex-detail-placeholder').classList.add('hidden');
+        document.getElementById('ex-detail-loading').classList.remove('hidden');
+
+        setTimeout(() => {
+            document.getElementById('ex-detail-loading').classList.add('hidden');
+            const wrap = document.getElementById('ex-detail-iframe-wrap');
+            wrap.innerHTML = `<iframe
+                src="${ex.videoUrl}&autoplay=1"
+                frameborder="0"
+                allow="autoplay; fullscreen"
+                allowfullscreen
+                class="ex-iframe">
+            </iframe>`;
+            wrap.classList.remove('hidden');
+        }, 800);
+    }
+
+    function simulateAIVideo(ex) {
+        const btn = document.getElementById('ex-ai-generate-btn');
+        const sub = document.getElementById('ex-ai-sub');
+        const original = btn.textContent;
+
+        btn.disabled = true;
+        btn.textContent = '⏳';
+        sub.textContent = 'Genererer AI-video…';
+
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = original;
+            sub.textContent = 'Koble til AI API for generering';
+            showToast('AI Video', 'Legg til API-nøkkel i innstillinger for å generere AI-video.');
+        }, 2000);
+    }
+
+    // Back button for exercise detail
+    document.getElementById('exercise-detail-back')?.addEventListener('click', () => {
+        const iframeWrap = document.getElementById('ex-detail-iframe-wrap');
+        if (iframeWrap) iframeWrap.innerHTML = ''; // stop video
+        showPage(_previousPage || 'train');
+    });
+
+    // ---- Helper to build a workout from library
     function buildWorkout(type, avoidExercises = []) {
         if (type === 'rest') return [];
 
@@ -599,19 +906,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         grid.innerHTML = filtered.map(ex => {
             const added = inBuilder.includes(ex.id);
+            const bg = typeColors[ex.type] || typeColors.push;
             return `
-            <div class="exercise-card ${added ? 'ex-added' : ''}">
-                <div class="exercise-details">
-                    <h4>${ex.name}</h4>
-                    <div class="exercise-tags">
-                        <span class="ex-tag">${ex.type.toUpperCase()}</span>
-                        <span class="ex-tag">Lvl ${ex.difficulty}</span>
-                        ${ex.tags.map(t => `<span class="ex-tag secondary">${t}</span>`).join('')}
+            <div class="lib-ex-row ${added ? 'ex-added' : ''}">
+                <div class="lib-ex-thumb" style="background:${bg}"
+                     onclick="showExerciseDetail('${ex.id}', 'train')">
+                    <span>${ex.emoji || '💪'}</span>
+                </div>
+                <div class="lib-ex-info" onclick="showExerciseDetail('${ex.id}', 'train')">
+                    <div class="lib-ex-name">${ex.name}</div>
+                    <div class="lib-ex-meta">
+                        ${ex.sets || 3} sett · ${ex.reps || 8} reps
+                        <span class="lib-ex-diff-dot" style="background:${difficultyColor[ex.difficulty] || '#fff'}"></span>
+                        ${difficultyLabel[ex.difficulty] || ''}
                     </div>
                 </div>
-                <button class="add-to-program-btn ${added ? 'added' : ''}"
+                <button class="lib-ex-add-btn ${added ? 'added' : ''}"
                     onclick="toggleExerciseInBuilder('${ex.id}')"
-                    title="${added ? 'Fjern fra program' : 'Legg til program'}">
+                    title="${added ? 'Fjern' : 'Legg til'}">
                     ${added ? '✓' : '+'}
                 </button>
             </div>`;
@@ -1013,15 +1325,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
             }).join('');
 
+            const libEx = exerciseLibrary.find(e => e.id === ex.id);
+            const exBg  = libEx ? (typeColors[libEx.type] || typeColors.push) : typeColors.push;
+            const exEmoji = libEx?.emoji || '💪';
+
             return `
             <div class="exercise-item ${allDone ? 'exercise-done' : ''} ${isOpen ? 'exercise-open' : ''}">
-                <div class="exercise-header" onclick="toggleExercise(${ei})">
-                    <div class="exercise-info">
+                <div class="exercise-header">
+                    <div class="ex-session-thumb" style="background:${exBg}"
+                         onclick="showExerciseDetail('${ex.id || ex.name}', 'train')"
+                         title="Se øvelse">
+                        <span>${exEmoji}</span>
+                    </div>
+                    <div class="exercise-info" onclick="toggleExercise(${ei})" style="flex:1;cursor:pointer;">
                         <h4>${ex.name}</h4>
                         <span class="exercise-meta">${doneSets}/${ex.setData.length} sett</span>
                     </div>
-                    <div class="exercise-header-right">
-                        ${allDone ? '<span class="exercise-complete-badge">✓ Ferdig</span>' : ''}
+                    <div class="exercise-header-right" onclick="toggleExercise(${ei})" style="cursor:pointer;">
+                        ${allDone ? '<span class="exercise-complete-badge">✓</span>' : ''}
                         <span class="exercise-chevron">${isOpen ? '▲' : '▼'}</span>
                     </div>
                 </div>
