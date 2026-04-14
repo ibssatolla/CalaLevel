@@ -478,8 +478,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('ar-record-btn')?.addEventListener('click', toggleArenaRecord);
         document.getElementById('ar-manual-rep')?.addEventListener('click', () => {
             arRepCount++;
-            const el = document.getElementById('ar-rep-count');
-            if (el) el.textContent = arRepCount;
+            console.log('[RepTrack] Manual rep! Count:', arRepCount);
+            flashRepCount();
         });
         document.getElementById('ar-post-btn')?.addEventListener('click', arenaPostResult);
         document.getElementById('ar-save-btn')?.addEventListener('click', arenaSaveResult);
@@ -746,9 +746,133 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ---- Motion-based rep tracker ----
+    // Algorithm: frame-differencing on a downsampled canvas.
+    // When motion fraction rises above RT_HIGH for RT_MIN_ACTIVE_MS
+    // then drops below RT_LOW → count one rep. Cooldown prevents double-counts.
+    // Works independent of camera angle and needs no external libraries.
+    // Manual button always visible as fallback.
+
+    const RT_W  = 80;              // downsampled width for speed
+    const RT_H  = 60;              // downsampled height
+    const RT_DIFF_THRESH = 18;     // per-channel diff to flag a pixel as "moving"
+    const RT_HIGH = 0.018;         // fraction of pixels moving → "in motion"
+    const RT_LOW  = 0.007;         // fraction → "at rest"
+    const RT_MIN_ACTIVE_MS = 280;  // motion must last this long to count
+    const RT_COOLDOWN_MS   = 750;  // min ms between accepted reps
+    const RT_SMOOTH        = 8;    // frames in smoothing window
+
+    let rt = {
+        active:    false,
+        canvas:    null,
+        ctx:       null,
+        prevGray:  null,
+        history:   [],
+        state:     'rest',   // 'rest' | 'active'
+        activeAt:  0,
+        lastRep:   0,
+        frameN:    0,
+        raf:       null
+    };
+
+    function startRepTracking() {
+        console.log('[RepTrack] Tracking started for exercise:', arExerciseId);
+        rt.canvas = document.createElement('canvas');
+        rt.canvas.width  = RT_W;
+        rt.canvas.height = RT_H;
+        rt.ctx      = rt.canvas.getContext('2d', { willReadFrequently: true });
+        rt.prevGray = null;
+        rt.history  = [];
+        rt.state    = 'rest';
+        rt.activeAt = 0;
+        rt.lastRep  = 0;
+        rt.frameN   = 0;
+        rt.active   = true;
+
+        const video = document.getElementById('ar-preview');
+        const tick = () => {
+            if (!rt.active) return;
+            rt.frameN++;
+            // process every 4th frame ≈ 15 fps — enough for rep detection
+            if (rt.frameN % 4 === 0 && video && video.readyState >= 2) {
+                processRTFrame(video);
+            }
+            rt.raf = requestAnimationFrame(tick);
+        };
+        rt.raf = requestAnimationFrame(tick);
+    }
+
+    function stopRepTracking() {
+        console.log('[RepTrack] Tracking stopped. Final count:', arRepCount);
+        rt.active = false;
+        if (rt.raf) { cancelAnimationFrame(rt.raf); rt.raf = null; }
+        rt.prevGray = null;
+    }
+
+    function processRTFrame(video) {
+        const { canvas, ctx } = rt;
+        try { ctx.drawImage(video, 0, 0, RT_W, RT_H); }
+        catch (_) { return; }
+
+        let imgData;
+        try { imgData = ctx.getImageData(0, 0, RT_W, RT_H); }
+        catch (_) { return; }  // SecurityError on cross-origin streams
+
+        // Convert to greyscale (fast integer path)
+        const pix = imgData.data;
+        const gray = new Uint8Array(RT_W * RT_H);
+        for (let i = 0; i < gray.length; i++) {
+            gray[i] = (pix[i*4]*77 + pix[i*4+1]*150 + pix[i*4+2]*29) >> 8;
+        }
+
+        if (!rt.prevGray) { rt.prevGray = gray; return; }
+
+        // Count moving pixels
+        let moving = 0;
+        for (let i = 0; i < gray.length; i++) {
+            if (Math.abs(gray[i] - rt.prevGray[i]) > RT_DIFF_THRESH) moving++;
+        }
+        rt.prevGray = gray;
+
+        // Smooth motion fraction
+        rt.history.push(moving / gray.length);
+        if (rt.history.length > RT_SMOOTH) rt.history.shift();
+        const smooth = rt.history.reduce((a,b) => a+b, 0) / rt.history.length;
+
+        // State machine: rest → active → rest = 1 rep
+        const now = Date.now();
+        if (rt.state === 'rest' && smooth > RT_HIGH) {
+            rt.state    = 'active';
+            rt.activeAt = now;
+
+        } else if (rt.state === 'active' && smooth < RT_LOW) {
+            const dur = now - rt.activeAt;
+            if (dur >= RT_MIN_ACTIVE_MS && now - rt.lastRep >= RT_COOLDOWN_MS) {
+                rt.lastRep = now;
+                arRepCount++;
+                console.log('[RepTrack] Rep detected! Count:', arRepCount);
+                flashRepCount();
+            }
+            rt.state = 'rest';
+        }
+    }
+
+    function flashRepCount() {
+        const el = document.getElementById('ar-rep-count');
+        if (!el) return;
+        el.textContent = arRepCount;
+        el.classList.remove('rep-pop');
+        void el.offsetWidth;  // reflow to restart animation
+        el.classList.add('rep-pop');
+        setTimeout(() => el.classList.remove('rep-pop'), 350);
+        if (navigator.vibrate) navigator.vibrate(55);
+    }
+
+    // ---- Arena Recording ----
+
     function startArenaRecording() {
         if (!arStream) return;
-        arChunks = [];
+        arChunks   = [];
         arRepCount = 0;
         const countEl = document.getElementById('ar-rep-count');
         if (countEl) countEl.textContent = '0';
@@ -767,19 +891,17 @@ document.addEventListener('DOMContentLoaded', () => {
         arRecorder.onstop = () => {
             const type = arRecorder.mimeType || 'video/webm';
             arResultBlob = new Blob(arChunks, { type });
+            stopRepTracking();
             showArenaResult();
         };
         arRecorder.start(200);
 
-        arIsRecording = true;
-        arStartTime = Date.now();
+        arIsRecording   = true;
+        arStartTime     = Date.now();
         arResultDuration = 0;
 
-        // UI: recording state
         document.getElementById('ar-record-inner')?.classList.add('recording');
         document.getElementById('ar-manual-rep')?.classList.remove('hidden');
-        // Lock exercise selector
-        document.querySelectorAll('.ar-ex-pill').forEach(b => b.disabled = true);
 
         arTimerInterval = setInterval(() => {
             const secs = Math.floor((Date.now() - arStartTime) / 1000);
@@ -789,19 +911,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (el) el.textContent = `${m}:${s}`;
             arResultDuration = secs;
         }, 500);
+
+        // Start automatic motion-based rep counting
+        startRepTracking();
     }
 
     function stopArenaRecording() {
         clearInterval(arTimerInterval);
         arIsRecording = false;
         document.getElementById('ar-record-inner')?.classList.remove('recording');
-        document.getElementById('ar-manual-rep')?.classList.add('hidden');
-        document.querySelectorAll('.ar-ex-pill').forEach(b => {
-            if (!arChallengeLock) b.disabled = false;
-        });
+        // keep manual button visible until result overlay appears
         if (arRecorder && arRecorder.state !== 'inactive') {
-            arRecorder.stop();
+            arRecorder.stop(); // triggers onstop → stopRepTracking + showArenaResult
         } else {
+            stopRepTracking();
             showArenaResult();
         }
     }
@@ -893,6 +1016,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function closeArenaRecord() {
         clearInterval(arTimerInterval);
+        stopRepTracking();
         if (arRecorder && arRecorder.state !== 'inactive') {
             try { arRecorder.stop(); } catch (e) {}
         }
