@@ -5,6 +5,7 @@ import { checkAuth } from './js/auth.js';
 import { initOnboarding } from './js/onboarding.js';
 import { logExerciseSet, renderBodyLogger, renderProfileSettings } from './js/logger.js';
 import { checkAndUpdatePR, saveExerciseSession, getLastSession, renderProgressPage } from './js/progression.js';
+import { startChallengeScanner, stopScanner } from './js/scanner.js';
 
 // ---- Page Navigation ----
 function showPage(pageId) {
@@ -251,20 +252,36 @@ document.addEventListener('DOMContentLoaded', () => {
             state.data.challenges.forEach(challenge => {
                 const card = document.createElement('div');
                 card.classList.add('challenge-card');
+                const completed = challenge.status === 'Completed';
                 card.innerHTML = `
                     <div class="challenge-info">
                         <h4>${challenge.title}</h4>
                         <div class="challenge-meta">
                             <span>${challenge.type}</span>
                             <span class="vs-badge">VS ${challenge.opponent}</span>
+                            <span class="challenge-target-badge">${challenge.target} reps</span>
                         </div>
                     </div>
-                    ${challenge.status === 'Open' ?
-                        `<button class="cta-button small secondary" onclick="acceptChallenge(${challenge.id})">Accept</button>` :
-                        `<span class="challenge-accepted">Accepted</span>`
-                    }
+                    <div class="challenge-actions">
+                        ${completed
+                            ? `<span class="challenge-accepted">✓ Fullført</span>`
+                            : `<button class="cta-button small primary scan-challenge-btn"
+                                data-id="${challenge.id}">
+                                📷 Start
+                               </button>`
+                        }
+                    </div>
                 `;
                 challengesList.appendChild(card);
+            });
+
+            // Wire up scan buttons
+            challengesList.querySelectorAll('.scan-challenge-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = parseInt(btn.getAttribute('data-id'));
+                    const ch = state.data.challenges.find(c => c.id === id);
+                    if (ch) openScanner(ch);
+                });
             });
         }
 
@@ -293,6 +310,82 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
+
+    // ---- Scanner / Challenge ----
+
+    function openScanner(challenge) {
+        const modal = document.getElementById('scanner-modal');
+        if (!modal) return;
+
+        // Reset UI
+        document.getElementById('scanner-count').textContent    = '0';
+        document.getElementById('scanner-target').textContent   = challenge.target;
+        document.getElementById('scanner-exercise-name').textContent = challenge.title;
+        document.getElementById('scanner-progress-fill').style.width = '0%';
+        document.getElementById('scanner-phase').textContent    = 'Klar';
+        document.getElementById('scanner-form-hint').textContent = 'Hold deg innenfor kamerarammen';
+        document.getElementById('scanner-complete').classList.add('hidden');
+        document.getElementById('scanner-loading').classList.remove('hidden');
+
+        modal.classList.remove('hidden');
+
+        startChallengeScanner(challenge, {
+            onRep: (count, target) => {
+                // Live counter already updated in scanner.js
+                // Play tone if available
+                playRepTone();
+            },
+            onComplete: (count) => {
+                const xpEarned = 50 + count * 2;
+                state.data.userProfile.xp += xpEarned;
+                state.data.userProfile.stats.workouts += 1;
+                challenge.status = 'Completed';
+                checkLevelUp();
+                saveState();
+                renderProfile();
+
+                // Show completion overlay
+                document.getElementById('scanner-complete-reps').textContent =
+                    `${count} reps fullført!`;
+                document.getElementById('scanner-xp-earned').textContent =
+                    `+${xpEarned} XP`;
+                document.getElementById('scanner-complete').classList.remove('hidden');
+
+                showToast('Challenge fullført! 🏆', `+${xpEarned} XP earned`);
+            }
+        }).catch(() => {
+            modal.classList.add('hidden');
+        });
+    }
+
+    function playRepTone() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = 880;
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.15);
+        } catch (_) { /* audio not available */ }
+    }
+
+    // Close scanner on stop/done buttons
+    document.getElementById('scanner-stop-btn')?.addEventListener('click', () => {
+        stopScanner();
+        document.getElementById('scanner-modal').classList.add('hidden');
+        renderBattles();
+    });
+
+    document.getElementById('scanner-done-btn')?.addEventListener('click', () => {
+        document.getElementById('scanner-modal').classList.add('hidden');
+        renderBattles();
+        renderProfile();
+    });
 
     window.acceptChallenge = function (id) {
         const challenge = state.data.challenges.find(c => c.id === id);

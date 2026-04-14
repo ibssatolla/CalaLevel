@@ -59,9 +59,9 @@ const defaultState = {
         { id: 'planche',    name: 'Planche',      level: 4, status: 'locked',   cost: 10000, x: 22, y: 74, parents: ['dips'] }
     ],
     challenges: [
-        { id: 1, title: 'Push-up Blitz', type: 'Rep Battle', opponent: 'AlexStr', status: 'Open' },
-        { id: 2, title: 'Planche Hold', type: 'Time Attack', opponent: 'GymRat99', status: 'Open' },
-        { id: 3, title: 'Muscle-up Race', type: 'Speed Run', opponent: 'BarStar', status: 'Open' }
+        { id: 1, title: 'Push-up Blitz',  type: 'Rep Battle', opponent: 'AlexStr',  status: 'Open', target: 20 },
+        { id: 2, title: 'Pull-up Battle', type: 'Rep Battle', opponent: 'GymRat99', status: 'Open', target: 10 },
+        { id: 3, title: 'Dip Challenge',  type: 'Rep Battle', opponent: 'BarStar',  status: 'Open', target: 15 }
     ],
     leaderboard: [
         { rank: 1, name: 'SarahGains', xp: 15400 },

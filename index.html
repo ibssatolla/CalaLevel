@@ -14,6 +14,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- TensorFlow.js + MoveNet pose detection -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
 </head>
 
 <body>
@@ -470,6 +473,59 @@
             <div id="history-list" class="history-list">
                 <!-- Rendered by JS -->
                 <div class="empty-state">No completed workouts yet.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scanner Modal -->
+    <div id="scanner-modal" class="scanner-modal hidden">
+        <div class="scanner-container">
+
+            <!-- Camera + skeleton overlay -->
+            <video id="scanner-video" class="scanner-video" autoplay muted playsinline></video>
+            <canvas id="scanner-canvas" class="scanner-canvas"></canvas>
+
+            <!-- Loading state -->
+            <div id="scanner-loading" class="scanner-loading hidden">
+                <div class="scanner-spinner"></div>
+                <p>Laster AI pose detection...</p>
+            </div>
+
+            <!-- HUD -->
+            <div class="scanner-hud">
+                <div class="scanner-hud-top">
+                    <span id="scanner-exercise-name" class="scanner-ex-name"></span>
+                    <span id="scanner-phase" class="scanner-phase-badge">Klar</span>
+                </div>
+
+                <div class="scanner-counter-wrap">
+                    <span id="scanner-count" class="scanner-count">0</span>
+                    <span class="scanner-sep">/</span>
+                    <span id="scanner-target" class="scanner-target">10</span>
+                    <div id="scanner-rep-flash" class="scanner-rep-flash"></div>
+                </div>
+
+                <div id="scanner-form-hint" class="scanner-form-hint">Klar til å starte</div>
+
+                <div class="scanner-progress-wrap">
+                    <div class="scanner-progress-bar">
+                        <div id="scanner-progress-fill" class="scanner-progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stop button -->
+            <button id="scanner-stop-btn" class="scanner-stop-btn">✕ Avslutt</button>
+
+            <!-- Completion overlay -->
+            <div id="scanner-complete" class="scanner-complete hidden">
+                <div class="scanner-complete-card">
+                    <div class="scanner-trophy">🏆</div>
+                    <h2>Challenge fullført!</h2>
+                    <p id="scanner-complete-reps" class="scanner-complete-reps"></p>
+                    <div id="scanner-xp-earned" class="scanner-xp-earned"></div>
+                    <button id="scanner-done-btn" class="cta-button primary" style="margin-top:1.5rem; min-width:160px;">Fullfør</button>
+                </div>
             </div>
         </div>
     </div>
