@@ -419,13 +419,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         backdrop?.addEventListener('click', closeArenaFAB);
 
-        document.getElementById('arena-opt-record')?.addEventListener('click', () => {
-            closeArenaFAB();
-            openArenaRecord(null);
+        document.getElementById('arena-opt-text')?.addEventListener('click', () => {
+            closeArenaFAB(); openCreatePost('text');
         });
-        document.getElementById('arena-opt-post')?.addEventListener('click', () => {
-            closeArenaFAB();
-            openArenaPostModal();
+        document.getElementById('arena-opt-image')?.addEventListener('click', () => {
+            closeArenaFAB(); openCreatePost('image');
+        });
+        document.getElementById('arena-opt-video-upload')?.addEventListener('click', () => {
+            closeArenaFAB(); openCreatePost('video');
+        });
+        document.getElementById('arena-opt-record')?.addEventListener('click', () => {
+            closeArenaFAB(); openArenaRecord(null);
         });
 
         // Record screen buttons
@@ -450,10 +454,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Post modal
-        const apmBg = document.getElementById('apm-bg');
-        apmBg?.addEventListener('click', closeArenaPostModal);
+        document.getElementById('apm-bg')?.addEventListener('click', closeArenaPostModal);
         document.getElementById('apm-close')?.addEventListener('click', closeArenaPostModal);
-        document.getElementById('apm-submit-btn')?.addEventListener('click', submitArenaManualPost);
+        document.getElementById('apm-submit-btn')?.addEventListener('click', submitArenaPost);
+
+        // File input
+        document.getElementById('apm-media-pick-btn')?.addEventListener('click', () => {
+            document.getElementById('apm-file-input')?.click();
+        });
+        document.getElementById('apm-file-input')?.addEventListener('change', (e) => {
+            handleArenaFileSelect(e.target.files[0]);
+        });
+
+        // Char counter for text post
+        document.getElementById('apm-text-input')?.addEventListener('input', (e) => {
+            const count = document.getElementById('apm-char-count');
+            if (count) count.textContent = e.target.value.length;
+        });
 
         // Populate exercise select in post modal
         const sel = document.getElementById('apm-exercise-select');
@@ -476,54 +493,120 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ---- Feed ----
-    function renderArenaFeed() {
-        const feed = document.getElementById('arena-feed');
-        if (!feed) return;
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
 
-        const posts = [...(state.data.arenaPosts || [])].reverse();
-        if (!posts.length) {
-            feed.innerHTML = `<div class="arena-empty">No posts yet. Be the first to record a workout.</div>`;
-            return;
+    function buildFeedCard(post) {
+        const type = post.type || 'verified';
+        const isMe = post.userId === 'user_me';
+        const time = formatArenaTime(post.createdAt);
+        const likedFill  = post.liked ? 'var(--primary)' : 'none';
+        const likedStroke = post.liked ? 'var(--primary)' : 'rgba(255,255,255,0.35)';
+
+        const actionsRow = `
+            <div class="feed-actions-row">
+                <button class="feed-like-btn ${post.liked ? 'liked' : ''}" onclick="toggleArenaLike(${post.id})">
+                    <svg viewBox="0 0 24 24" fill="${likedFill}" stroke="${likedStroke}" width="17" height="17" stroke-width="2" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                    <span>${post.likes || 0}</span>
+                </button>
+            </div>`;
+
+        const headerRow = `
+            <div class="feed-row">
+                <span class="feed-username">${escapeHtml(post.username)}</span>
+                <span class="feed-time">${time}</span>
+            </div>`;
+
+        if (type === 'text') {
+            return `
+            <div class="feed-card type-text" data-post="${post.id}">
+                <div class="feed-body">
+                    ${headerRow}
+                    ${isMe ? '<span class="feed-mine-inline">You</span>' : ''}
+                    <div class="feed-text-content">${escapeHtml(post.content || '')}</div>
+                </div>
+                ${actionsRow}
+            </div>`;
         }
 
-        feed.innerHTML = posts.map(post => {
-            const lib = exerciseLibrary.find(e => e.id === post.exerciseId);
-            const img = lib?.image || '';
-            const isMe = post.userId === 'user_me';
-            const time = formatArenaTime(post.createdAt);
-
+        if (type === 'image') {
             return `
-            <div class="feed-card" data-post="${post.id}">
+            <div class="feed-card type-image" data-post="${post.id}">
                 <div class="feed-media">
-                    ${post.videoUrl
-                        ? `<video src="${post.videoUrl}" autoplay loop muted playsinline class="feed-video"></video>`
-                        : `<img src="${img}" class="feed-img" alt="${post.exercise}" loading="lazy">`
-                    }
-                    ${post.verified ? '<div class="feed-verified-badge">Verified</div>' : ''}
+                    <img src="${post.content}" class="feed-img" loading="lazy" alt="post">
                     ${isMe ? '<div class="feed-mine-badge">You</div>' : ''}
                 </div>
                 <div class="feed-body">
-                    <div class="feed-row">
-                        <span class="feed-username">${post.username}</span>
-                        <span class="feed-time">${time}</span>
-                    </div>
-                    <div class="feed-detail-row">
-                        <span class="feed-exercise">${post.exercise}</span>
-                        ${post.reps ? `<span class="feed-reps">${post.reps} reps</span>` : ''}
-                    </div>
-                    ${post.caption ? `<div class="feed-caption">${post.caption}</div>` : ''}
+                    ${headerRow}
+                    ${post.caption ? `<div class="feed-caption">${escapeHtml(post.caption)}</div>` : ''}
                 </div>
-                <div class="feed-actions-row">
-                    <button class="feed-like-btn ${post.liked ? 'liked' : ''}"
-                        onclick="toggleArenaLike(${post.id})">
-                        <svg viewBox="0 0 24 24" fill="${post.liked ? 'var(--primary)' : 'none'}" stroke="${post.liked ? 'var(--primary)' : 'rgba(255,255,255,0.4)'}" width="17" height="17" stroke-width="2" stroke-linejoin="round">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                        </svg>
-                        <span>${post.likes || 0}</span>
-                    </button>
-                </div>
+                ${actionsRow}
             </div>`;
-        }).join('');
+        }
+
+        if (type === 'video') {
+            return `
+            <div class="feed-card type-video" data-post="${post.id}">
+                <div class="feed-media">
+                    <video src="${post.content}" class="feed-video" controls playsinline></video>
+                    ${isMe ? '<div class="feed-mine-badge">You</div>' : ''}
+                </div>
+                <div class="feed-body">
+                    ${headerRow}
+                    ${post.caption ? `<div class="feed-caption">${escapeHtml(post.caption)}</div>` : ''}
+                </div>
+                ${actionsRow}
+            </div>`;
+        }
+
+        // type === 'verified' (default for old posts)
+        const lib = exerciseLibrary.find(e => e.id === post.exerciseId);
+        const fallbackImg = lib?.image || '';
+        const mediaSrc = post.videoUrl || post.content || null;
+        return `
+        <div class="feed-card type-verified" data-post="${post.id}">
+            <div class="feed-media">
+                ${mediaSrc
+                    ? `<video src="${mediaSrc}" class="feed-video" controls playsinline></video>`
+                    : `<img src="${fallbackImg}" class="feed-img" loading="lazy" alt="${escapeHtml(post.exercise || '')}">`
+                }
+                ${post.verified ? '<div class="feed-verified-badge">Verified</div>' : ''}
+                ${isMe ? '<div class="feed-mine-badge">You</div>' : ''}
+            </div>
+            <div class="feed-body">
+                ${headerRow}
+                <div class="feed-detail-row">
+                    <span class="feed-exercise">${escapeHtml(post.exercise || '')}</span>
+                    ${post.reps ? `<span class="feed-reps">${post.reps} reps</span>` : ''}
+                </div>
+                ${post.caption ? `<div class="feed-caption">${escapeHtml(post.caption)}</div>` : ''}
+            </div>
+            ${actionsRow}
+        </div>`;
+    }
+
+    function renderArenaFeed() {
+        const feed = document.getElementById('arena-feed');
+        if (!feed) return;
+        const posts = [...(state.data.arenaPosts || [])].reverse();
+        if (!posts.length) {
+            feed.innerHTML = `
+                <div class="arena-feed-empty">
+                    <div class="afe-msg">No posts yet</div>
+                    <button class="afe-cta" onclick="document.getElementById('arena-fab').click()">
+                        Create your first post
+                    </button>
+                </div>`;
+            return;
+        }
+        feed.innerHTML = posts.map(buildFeedCard).join('');
     }
 
     window.toggleArenaLike = function (postId) {
@@ -714,11 +797,13 @@ document.addEventListener('DOMContentLoaded', () => {
             id: Date.now(),
             userId: 'user_me',
             username: state.data.userProfile.name || 'You',
+            type: 'verified',
             exercise: lib?.name || 'Exercise',
             exerciseId: arExerciseId,
             reps: arRepCount,
             verified: true,
             caption: '',
+            content: videoUrl,
             createdAt: new Date().toISOString(),
             likes: 0,
             liked: false,
@@ -789,39 +874,110 @@ document.addEventListener('DOMContentLoaded', () => {
         arChallengeLock = null;
     }
 
-    // ---- Manual post modal ----
-    function openArenaPostModal() {
+    // ---- Create post modal ----
+    let apmCurrentType = 'text';
+    let apmMediaObjectUrl = null;
+
+    function openCreatePost(type) {
+        apmCurrentType = type;
+        if (apmMediaObjectUrl) { URL.revokeObjectURL(apmMediaObjectUrl); apmMediaObjectUrl = null; }
+
+        // Hide all sections
+        ['apm-text-section', 'apm-media-section', 'apm-workout-section'].forEach(id => {
+            document.getElementById(id)?.classList.add('hidden');
+        });
+
+        // Reset fields
+        const ti = document.getElementById('apm-text-input');   if (ti) ti.value = '';
+        const cc = document.getElementById('apm-char-count');   if (cc) cc.textContent = '0';
+        const ca = document.getElementById('apm-caption');      if (ca) ca.value = '';
+        const wc = document.getElementById('apm-workout-caption'); if (wc) wc.value = '';
+        const ri = document.getElementById('apm-reps-input');   if (ri) ri.value = '';
+        const fi = document.getElementById('apm-file-input');   if (fi) fi.value = '';
+        document.getElementById('apm-image-preview')?.classList.add('hidden');
+        document.getElementById('apm-video-preview')?.classList.add('hidden');
+        document.getElementById('apm-media-pick-btn')?.classList.remove('hidden');
+
+        const titles = { text: 'Text Post', image: 'Upload Image', video: 'Upload Video', workout: 'Workout Post' };
+        const titleEl = document.getElementById('apm-title');
+        if (titleEl) titleEl.textContent = titles[type] || 'New Post';
+
+        if (type === 'text') {
+            document.getElementById('apm-text-section')?.classList.remove('hidden');
+        } else if (type === 'image' || type === 'video') {
+            const fileInput = document.getElementById('apm-file-input');
+            if (fileInput) fileInput.accept = type === 'image' ? 'image/*' : 'video/*';
+            document.getElementById('apm-media-section')?.classList.remove('hidden');
+        } else if (type === 'workout') {
+            document.getElementById('apm-workout-section')?.classList.remove('hidden');
+        }
+
         document.getElementById('arena-post-modal')?.classList.remove('hidden');
-        const repsInput = document.getElementById('apm-reps-input');
-        const caption  = document.getElementById('apm-caption');
-        if (repsInput) repsInput.value = '';
-        if (caption)   caption.value = '';
+    }
+
+    function handleArenaFileSelect(file) {
+        if (!file) return;
+        if (apmMediaObjectUrl) URL.revokeObjectURL(apmMediaObjectUrl);
+        apmMediaObjectUrl = URL.createObjectURL(file);
+
+        const imgEl   = document.getElementById('apm-image-preview');
+        const vidEl   = document.getElementById('apm-video-preview');
+        const pickBtn = document.getElementById('apm-media-pick-btn');
+
+        imgEl?.classList.add('hidden');
+        vidEl?.classList.add('hidden');
+        pickBtn?.classList.add('hidden');
+
+        if (file.type.startsWith('image/')) {
+            if (imgEl) { imgEl.src = apmMediaObjectUrl; imgEl.classList.remove('hidden'); }
+        } else if (file.type.startsWith('video/')) {
+            if (vidEl) { vidEl.src = apmMediaObjectUrl; vidEl.classList.remove('hidden'); }
+        }
     }
 
     function closeArenaPostModal() {
         document.getElementById('arena-post-modal')?.classList.add('hidden');
     }
 
-    function submitArenaManualPost() {
-        const exId   = document.getElementById('apm-exercise-select')?.value;
-        const reps   = parseInt(document.getElementById('apm-reps-input')?.value) || 0;
-        const caption = document.getElementById('apm-caption')?.value?.trim() || '';
-        const lib    = exerciseLibrary.find(e => e.id === exId);
-
-        const newPost = {
+    function submitArenaPost() {
+        const username = state.data.userProfile.name || 'You';
+        let newPost = {
             id: Date.now(),
             userId: 'user_me',
-            username: state.data.userProfile.name || 'You',
-            exercise: lib?.name || 'Exercise',
-            exerciseId: exId,
-            reps: reps || null,
+            username,
+            type: apmCurrentType,
+            content: null,
+            caption: '',
+            exercise: null,
+            exerciseId: null,
+            reps: null,
             verified: false,
-            caption,
             createdAt: new Date().toISOString(),
             likes: 0,
             liked: false,
-            videoUrl: null,
         };
+
+        if (apmCurrentType === 'text') {
+            const text = document.getElementById('apm-text-input')?.value?.trim() || '';
+            if (!text) { showToast('Skriv noe først', ''); return; }
+            newPost.content = text;
+
+        } else if (apmCurrentType === 'image' || apmCurrentType === 'video') {
+            if (!apmMediaObjectUrl) { showToast('Velg en fil først', ''); return; }
+            newPost.content = apmMediaObjectUrl;
+            newPost.caption = document.getElementById('apm-caption')?.value?.trim() || '';
+            apmMediaObjectUrl = null; // ownership transferred to post — do not revoke
+
+        } else if (apmCurrentType === 'workout') {
+            const exId = document.getElementById('apm-exercise-select')?.value;
+            const lib  = exerciseLibrary.find(e => e.id === exId);
+            newPost.type       = 'verified';
+            newPost.exercise   = lib?.name || 'Exercise';
+            newPost.exerciseId = exId;
+            newPost.reps       = parseInt(document.getElementById('apm-reps-input')?.value) || null;
+            newPost.caption    = document.getElementById('apm-workout-caption')?.value?.trim() || '';
+        }
+
         state.data.arenaPosts.push(newPost);
         state.data.userProfile.xp += 5;
         checkLevelUp();

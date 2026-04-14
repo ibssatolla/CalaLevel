@@ -5203,3 +5203,165 @@ spline-viewer {
     font-family: inherit;
     line-height: 1.4;
 }
+
+/* ============================================================
+   ARENA — Extended post types
+   ============================================================ */
+
+/* Section visibility */
+.apm-section {
+    width: 100%;
+}
+
+.apm-section.hidden {
+    display: none;
+}
+
+/* FAB text icon */
+.afo-text-icon {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--primary);
+    background: var(--primary);
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Text post composer */
+.apm-text-body {
+    font-size: 1rem;
+    line-height: 1.6;
+    min-height: 120px;
+    margin-bottom: 6px;
+}
+
+.apm-char-wrap {
+    text-align: right;
+    font-size: 0.72rem;
+    color: var(--ios-label2);
+    margin-bottom: 14px;
+    padding-right: 2px;
+}
+
+/* Media preview */
+.apm-media-preview-wrap {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: var(--ios-bg3);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.apm-media-pick-btn {
+    background: none;
+    border: 2px dashed rgba(255,255,255,0.2);
+    color: var(--primary);
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.apm-media-pick-btn:hover {
+    border-color: var(--primary);
+}
+
+.apm-media-preview-el {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.apm-media-preview-el.hidden {
+    display: none;
+}
+
+/* Feed — text post */
+.feed-card.type-text {
+    background: var(--ios-bg2);
+    border-radius: 16px;
+    margin-bottom: 12px;
+}
+
+.feed-card.type-text .feed-body {
+    padding: 16px 16px 10px;
+}
+
+.feed-text-content {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--ios-label);
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-top: 8px;
+}
+
+.feed-mine-inline {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.12);
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-bottom: 6px;
+}
+
+/* Feed — image / video posts */
+.feed-card.type-image,
+.feed-card.type-video,
+.feed-card.type-verified {
+    background: var(--ios-bg2);
+    border-radius: 16px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+/* Video in feed — NOT autoplay, user taps to play */
+.feed-card.type-video .feed-video,
+.feed-card.type-verified .feed-video {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    display: block;
+    background: #000;
+}
+
+/* Feed empty state */
+.arena-feed-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 64px 24px;
+    text-align: center;
+}
+
+.afe-msg {
+    font-size: 1rem;
+    color: var(--ios-label2);
+    font-weight: 500;
+}
+
+.afe-cta {
+    background: var(--primary);
+    color: #000;
+    font-size: 0.88rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 22px;
+    padding: 11px 24px;
+    cursor: pointer;
+}
