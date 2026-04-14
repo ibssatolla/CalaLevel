@@ -4256,6 +4256,12 @@ spline-viewer {
    QUICK WORKOUT FLOW SCREEN
    ============================================================ */
 
+/* Override display: block from .page.active — flow screen needs flex column */
+.qf-page.active {
+    display: flex;
+    flex-direction: column;
+}
+
 .qf-page .ios-nav-bar {
     flex-shrink: 0;
 }
@@ -4266,6 +4272,7 @@ spline-viewer {
     padding: 0 16px calc(var(--tab-height) + 16px);
     overflow-y: auto;
     flex: 1;
+    min-height: 0;
 }
 
 /* Thin progress bar */
@@ -4406,7 +4413,8 @@ spline-viewer {
    QUICK WORKOUT COMPLETION SCREEN
    ============================================================ */
 
-.qc-page {
+/* Override display: block from .page.active — completion screen needs flex column */
+.qc-page.active {
     display: flex;
     flex-direction: column;
 }
@@ -4417,6 +4425,7 @@ spline-viewer {
     align-items: center;
     justify-content: center;
     flex: 1;
+    min-height: 0;
     padding: 40px 24px calc(var(--tab-height) + 32px);
     gap: 24px;
     text-align: center;

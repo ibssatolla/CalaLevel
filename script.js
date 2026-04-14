@@ -1385,6 +1385,26 @@ document.addEventListener('DOMContentLoaded', () => {
         showPage('quick-complete');
     }
 
+    // Fully clears all quick workout state — called on Done and on Stop
+    function resetQuickWorkoutState() {
+        qfState = {
+            exercises: [],
+            exIdx: 0,
+            setIdx: 0,
+            completedSets: 0,
+            totalReps: 0,
+            focus: 'full',
+            duration: 20,
+            xpFromSets: 0,
+        };
+        // Clear the GIF src so it doesn't show stale content
+        const gif = document.getElementById('qf-exercise-gif');
+        if (gif) gif.src = '';
+        // Reset progress bar
+        const fill = document.getElementById('qf-progress-bar-fill');
+        if (fill) fill.style.width = '0%';
+    }
+
     // Quick flow button wiring
     document.getElementById('qf-done-btn')?.addEventListener('click', () => {
         advanceQuickFlow(true);
@@ -1392,12 +1412,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('qf-skip-btn')?.addEventListener('click', () => {
         advanceQuickFlow(false);
     });
+    // Stop workout mid-flow → reset state and go back to train
     document.getElementById('qf-back-btn')?.addEventListener('click', () => {
+        resetQuickWorkoutState();
         showPage('train');
     });
+    // Completion Done → reset state and navigate to Home
     document.getElementById('qc-done-btn')?.addEventListener('click', () => {
-        showPage('train');
-        showToast('Bra jobbet!', `Workout lagret.`);
+        resetQuickWorkoutState();
+        showPage('home');
+        showToast('Bra jobbet!', 'Workout lagret.');
     });
 
     // ============================================================
