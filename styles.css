@@ -3629,3 +3629,20 @@ spline-viewer {
     color: var(--primary);
     font-weight: 700;
 }
+
+/* ---- Scanner improvements ---- */
+
+/* Form hint colour states */
+.scanner-form-hint.hint-ok   { color: rgba(255,255,255,0.5); }
+.scanner-form-hint.hint-warn { color: rgba(255,200,0,0.9);   }
+.scanner-form-hint.hint-bad  { color: rgba(255,80,80,0.95);  font-weight: 700; }
+
+/* Rep count pop animation */
+@keyframes repPop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
+.scanner-count.rep-pop {
+    animation: repPop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}

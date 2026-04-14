@@ -1,31 +1,66 @@
 /**
  * scanner.js — AI pose detection + rep counting
- * Uses TensorFlow.js MoveNet (loaded as global window.poseDetection)
+ * Uses TensorFlow.js MoveNet (window.poseDetection must be loaded globally)
+ *
+ * Rep-counting algorithm:
+ *   - State machine: TOP → BOTTOM → TOP = 1 rep
+ *   - Elbow angle for push-ups:  TOP > 160°, BOTTOM < 90°
+ *   - Elbow angle for pull-ups:  BOTTOM > 160°, TOP < 90°
+ *   - Angle smoothed over SMOOTH_WINDOW frames (jitter reduction)
+ *   - Cooldown of COOLDOWN_MS after each accepted rep
+ *   - Form check: body alignment + full ROM required
+ *   - Confidence gate: key landmarks must score > MIN_CONFIDENCE
  */
 
 import { showToast } from './utils.js';
 
+// ---- Constants ----
+
+const MIN_CONFIDENCE = 0.4;   // minimum keypoint score to trust a reading
+const SMOOTH_WINDOW  = 6;     // frames to average for jitter reduction
+const COOLDOWN_MS    = 700;   // minimum ms between reps
+
+// Elbow angle thresholds
+const TOP_ANGLE    = 160;     // "straight" / locked out
+const BOTTOM_ANGLE = 90;      // "bent" / full depth
+
+// Body alignment threshold (shoulder-hip-knee angle must be > this for straight body)
+const BODY_STRAIGHT_MIN = 150;
+
 // MoveNet keypoint indices
 const KP = {
-    NOSE: 0,
-    LEFT_SHOULDER: 5,  RIGHT_SHOULDER: 6,
-    LEFT_ELBOW:    7,  RIGHT_ELBOW:    8,
-    LEFT_WRIST:    9,  RIGHT_WRIST:    10,
-    LEFT_HIP:      11, RIGHT_HIP:      12,
-    LEFT_KNEE:     13, RIGHT_KNEE:     14,
-    LEFT_ANKLE:    15, RIGHT_ANKLE:    16
+    NOSE:           0,
+    LEFT_SHOULDER:  5,  RIGHT_SHOULDER: 6,
+    LEFT_ELBOW:     7,  RIGHT_ELBOW:    8,
+    LEFT_WRIST:     9,  RIGHT_WRIST:    10,
+    LEFT_HIP:       11, RIGHT_HIP:      12,
+    LEFT_KNEE:      13, RIGHT_KNEE:     14,
+    LEFT_ANKLE:     15, RIGHT_ANKLE:    16
 };
 
-// Module-level state
-let detector     = null;
-let stream       = null;
-let animFrame    = null;
-let active       = false;
+// ---- Module-level state ----
 
-let repCount     = 0;
-let repTarget    = 10;
-let repPhase     = 'neutral'; // 'up' | 'down' | 'neutral'
-let exerciseType = 'pushup';  // 'pushup' | 'pullup' | 'dip'
+let detector      = null;
+let stream        = null;
+let animFrame     = null;
+let active        = false;
+
+// Rep state machine
+// Phases:  'waiting_top' → 'at_top' → 'going_down' → 'at_bottom' → 'going_up'
+// A rep is counted when we complete: at_top → at_bottom → at_top
+let repPhase      = 'waiting_top';
+let reachedBottom = false;        // ensures full ROM before counting
+let repCount      = 0;
+let repTarget     = 10;
+let exerciseType  = 'pushup';
+let lastRepTime   = 0;            // timestamp of last accepted rep
+
+// Angle smoothing: circular buffer
+const angleBuffer = [];
+
+// For colour-coding skeleton on last rep result
+let lastRepAccepted = null;       // true = green, false = red, null = neutral
+let lastRepFlashAt  = 0;
 
 let onRepFn      = null;
 let onCompleteFn = null;
@@ -33,9 +68,15 @@ let onCompleteFn = null;
 // ---- Public API ----
 
 export async function startChallengeScanner(challenge, callbacks) {
-    repCount     = 0;
-    repPhase     = 'neutral';
-    repTarget    = challenge.target  || 10;
+    // Reset all state
+    repCount      = 0;
+    repPhase      = 'waiting_top';
+    reachedBottom = false;
+    lastRepTime   = 0;
+    lastRepAccepted = null;
+    angleBuffer.length = 0;
+
+    repTarget    = challenge.target || 10;
     exerciseType = detectExerciseType(challenge.title || '');
     onRepFn      = callbacks.onRep;
     onCompleteFn = callbacks.onComplete;
@@ -64,9 +105,9 @@ export async function startChallengeScanner(challenge, callbacks) {
 
 export function stopScanner() {
     active = false;
-    if (animFrame)  { cancelAnimationFrame(animFrame); animFrame = null; }
-    if (stream)     { stream.getTracks().forEach(t => t.stop()); stream = null; }
-    if (detector)   { try { detector.dispose?.(); } catch (_) {} detector = null; }
+    if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+    if (stream)    { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    if (detector)  { try { detector.dispose?.(); } catch (_) {} detector = null; }
     const video = document.getElementById('scanner-video');
     if (video) video.srcObject = null;
 }
@@ -75,31 +116,26 @@ export function stopScanner() {
 
 function detectExerciseType(title) {
     const t = title.toLowerCase();
-    if (t.includes('push'))              return 'pushup';
+    if (t.includes('push'))                               return 'pushup';
     if (t.includes('pull') || t.includes('chin') || t.includes('muscle')) return 'pullup';
-    if (t.includes('dip'))               return 'dip';
-    if (t.includes('squat'))             return 'squat';
+    if (t.includes('dip'))                                return 'dip';
     return 'pushup';
 }
 
 async function initCamera() {
     const video = document.getElementById('scanner-video');
-    if (!video) throw new Error('No #scanner-video element found');
-
+    if (!video) throw new Error('No #scanner-video element');
     stream = await navigator.mediaDevices.getUserMedia({
         video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
         audio: false
     });
     video.srcObject = stream;
-    await new Promise((resolve, reject) => {
-        video.onloadeddata = resolve;
-        video.onerror      = reject;
-    });
+    await new Promise((res, rej) => { video.onloadeddata = res; video.onerror = rej; });
     await video.play();
 }
 
 async function initDetector() {
-    if (!window.poseDetection) throw new Error('poseDetection library not loaded');
+    if (!window.poseDetection) throw new Error('poseDetection not loaded');
     detector = await window.poseDetection.createDetector(
         window.poseDetection.SupportedModels.MoveNet,
         { modelType: window.poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING }
@@ -113,7 +149,6 @@ async function detectLoop() {
 
     const video  = document.getElementById('scanner-video');
     const canvas = document.getElementById('scanner-canvas');
-
     if (!video || !canvas) return;
 
     if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
@@ -126,97 +161,250 @@ async function detectLoop() {
         const ctx   = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        if (poses.length > 0) {
-            drawSkeleton(poses[0], ctx);
-            processReps(poses[0]);
+        if (poses.length > 0 && hasEnoughConfidence(poses[0])) {
+            const result = processFrame(poses[0]);
+            drawSkeleton(poses[0], ctx, result.skeletonColor);
+            drawAngleArc(poses[0], ctx, result.smoothedAngle);
         } else {
-            drawNoPersonHint(ctx, canvas);
+            drawLowConfidenceHint(canvas, ctx, poses.length === 0);
         }
-    } catch (_) { /* frame error — skip */ }
+    } catch (_) { /* skip frame on error */ }
 
     if (active) animFrame = requestAnimationFrame(detectLoop);
 }
 
-// ---- Rep counting ----
+// ---- Confidence gate ----
 
-function kp(pose, idx) {
-    const k = pose.keypoints[idx];
-    return (k && k.score > 0.3) ? k : null;
+function hasEnoughConfidence(pose) {
+    // All key arm landmarks must be visible
+    const required = [
+        KP.LEFT_SHOULDER, KP.RIGHT_SHOULDER,
+        KP.LEFT_ELBOW,    KP.RIGHT_ELBOW,
+        KP.LEFT_WRIST,    KP.RIGHT_WRIST
+    ];
+    const visible = required.filter(i => {
+        const k = pose.keypoints[i];
+        return k && k.score >= MIN_CONFIDENCE;
+    });
+    if (visible.length < 4) {
+        setFormHint('Juster kamera — armene er ikke synlige', 'warn');
+        return false;
+    }
+    return true;
 }
 
-function angle(a, b, c) {
-    if (!a || !b || !c) return 180;
+// ---- Angle helpers ----
+
+function kp(pose, idx, minScore = MIN_CONFIDENCE) {
+    const k = pose.keypoints[idx];
+    return (k && k.score >= minScore) ? k : null;
+}
+
+function angleBetween(a, b, c) {
+    if (!a || !b || !c) return null;
     const ba  = { x: a.x - b.x, y: a.y - b.y };
     const bc  = { x: c.x - b.x, y: c.y - b.y };
     const dot = ba.x * bc.x + ba.y * bc.y;
     const mag = Math.hypot(ba.x, ba.y) * Math.hypot(bc.x, bc.y);
-    return Math.acos(Math.max(-1, Math.min(1, dot / (mag || 1)))) * (180 / Math.PI);
+    if (mag === 0) return null;
+    return Math.acos(Math.max(-1, Math.min(1, dot / mag))) * (180 / Math.PI);
 }
 
-function processReps(pose) {
-    const lS  = kp(pose, KP.LEFT_SHOULDER);
-    const rS  = kp(pose, KP.RIGHT_SHOULDER);
-    const lE  = kp(pose, KP.LEFT_ELBOW);
-    const rE  = kp(pose, KP.RIGHT_ELBOW);
-    const lW  = kp(pose, KP.LEFT_WRIST);
-    const rW  = kp(pose, KP.RIGHT_WRIST);
+function smoothedElbowAngle(pose) {
+    // Compute best elbow angle from both sides
+    const lS = kp(pose, KP.LEFT_SHOULDER);
+    const rS = kp(pose, KP.RIGHT_SHOULDER);
+    const lE = kp(pose, KP.LEFT_ELBOW);
+    const rE = kp(pose, KP.RIGHT_ELBOW);
+    const lW = kp(pose, KP.LEFT_WRIST);
+    const rW = kp(pose, KP.RIGHT_WRIST);
 
-    // Use best-visible side's elbow angle
-    const la = angle(lS, lE, lW);
-    const ra = angle(rS, rE, rW);
-    const elbowAngle = Math.min(la, ra); // smallest = most bent
+    const la = angleBetween(lS, lE, lW);
+    const ra = angleBetween(rS, rE, rW);
 
-    const BENT    = 100; // elbows bent → "up" position for pullup, "down" for pushup
-    const STRAIGHT = 155; // elbows straight → "down" hanging or "up" lockout
-
-    if (exerciseType === 'pushup') {
-        // Down: elbows bent (<BENT), Up: elbows straight (>STRAIGHT)
-        if (elbowAngle < BENT && repPhase !== 'down') {
-            repPhase = 'down';
-            setPhaseLabel('Ned ✓');
-        } else if (elbowAngle > STRAIGHT && repPhase === 'down') {
-            repPhase = 'up';
-            setPhaseLabel('Opp ✓');
-            registerRep();
-        }
+    // Prefer the side with higher combined confidence; fall back to available side
+    let raw = null;
+    if (la !== null && ra !== null) {
+        const lConf = (lS?.score ?? 0) + (lE?.score ?? 0) + (lW?.score ?? 0);
+        const rConf = (rS?.score ?? 0) + (rE?.score ?? 0) + (rW?.score ?? 0);
+        raw = lConf >= rConf ? la : ra;
     } else {
-        // Pull-up / dip: Up: elbows bent, Down: elbows straight
-        if (elbowAngle < BENT && repPhase !== 'up') {
-            repPhase = 'up';
-            setPhaseLabel('Opp ✓');
-            registerRep();
-        } else if (elbowAngle > STRAIGHT && repPhase === 'up') {
-            repPhase = 'down';
-            setPhaseLabel('Ned ✓');
+        raw = la ?? ra;
+    }
+
+    if (raw === null) return null;
+
+    // Push into smoothing buffer
+    angleBuffer.push(raw);
+    if (angleBuffer.length > SMOOTH_WINDOW) angleBuffer.shift();
+
+    // Return mean of buffer
+    return angleBuffer.reduce((s, v) => s + v, 0) / angleBuffer.length;
+}
+
+// ---- Form validation ----
+
+function checkBodyForm(pose) {
+    // For push-ups: shoulder → hip → knee should be roughly straight
+    // For pull-ups: just ensure we can see the torso
+    if (exerciseType !== 'pushup') return { ok: true, hint: '' };
+
+    const lS = kp(pose, KP.LEFT_SHOULDER, 0.3);
+    const lH = kp(pose, KP.LEFT_HIP,      0.3);
+    const lK = kp(pose, KP.LEFT_KNEE,     0.3);
+    const rS = kp(pose, KP.RIGHT_SHOULDER,0.3);
+    const rH = kp(pose, KP.RIGHT_HIP,     0.3);
+    const rK = kp(pose, KP.RIGHT_KNEE,    0.3);
+
+    const la = angleBetween(lS, lH, lK);
+    const ra = angleBetween(rS, rH, rK);
+    const bodyAngle = (la !== null && ra !== null) ? (la + ra) / 2 : (la ?? ra);
+
+    if (bodyAngle !== null && bodyAngle < BODY_STRAIGHT_MIN) {
+        // Check if hips are sagging (hip lower than shoulder-ankle line) or piking
+        const hipY = ((lH?.y ?? 0) + (rH?.y ?? 0)) / 2;
+        const shoulderY = ((lS?.y ?? 0) + (rS?.y ?? 0)) / 2;
+        const kneeY = ((lK?.y ?? 0) + (rK?.y ?? 0)) / 2;
+        const expectedHipY = (shoulderY + kneeY) / 2;
+        const sag = hipY - expectedHipY; // positive = hips sagging down
+
+        if (sag > 30) return { ok: false, hint: 'Hold kroppen rett — hofter henger for lavt' };
+        if (sag < -30) return { ok: false, hint: 'Hold kroppen rett — hofter for høyt (pike)' };
+        return { ok: false, hint: 'Strekk ut kroppen' };
+    }
+
+    return { ok: true, hint: '' };
+}
+
+// ---- Rep state machine ----
+
+function processFrame(pose) {
+    const smoothed = smoothedElbowAngle(pose);
+    if (smoothed === null) {
+        setFormHint('Armene ikke synlige', 'warn');
+        return { skeletonColor: 'neutral', smoothedAngle: null };
+    }
+
+    const isPushup = exerciseType === 'pushup';
+    // For push-ups: top = straight arms, bottom = bent arms
+    // For pull-ups/dips: top = bent arms, bottom = straight arms
+    const isAtTop    = isPushup ? smoothed > TOP_ANGLE    : smoothed < BOTTOM_ANGLE;
+    const isAtBottom = isPushup ? smoothed < BOTTOM_ANGLE : smoothed > TOP_ANGLE;
+
+    // Update phase label
+    updatePhaseHUD(smoothed, isAtTop, isAtBottom);
+
+    // State transitions
+    if (repPhase === 'waiting_top' || repPhase === 'at_top') {
+        if (isAtTop) {
+            repPhase = 'at_top';
+        } else if (repPhase === 'at_top') {
+            repPhase = 'going_down';
+        }
+    } else if (repPhase === 'going_down') {
+        if (isAtBottom) {
+            repPhase = 'at_bottom';
+            reachedBottom = true;
+        }
+    } else if (repPhase === 'at_bottom' || repPhase === 'going_up') {
+        if (!isAtBottom) repPhase = 'going_up';
+        if (isAtTop && repPhase === 'going_up') {
+            // Completed full TOP → BOTTOM → TOP sequence
+            repPhase = 'at_top';
+
+            const now      = performance.now();
+            const cooldownOk = (now - lastRepTime) >= COOLDOWN_MS;
+            const formCheck  = checkBodyForm(pose);
+
+            if (cooldownOk && reachedBottom && formCheck.ok) {
+                lastRepTime     = now;
+                reachedBottom   = false;
+                lastRepAccepted = true;
+                lastRepFlashAt  = now;
+                acceptRep();
+                return { skeletonColor: 'green', smoothedAngle: smoothed };
+            } else {
+                lastRepAccepted = false;
+                lastRepFlashAt  = now;
+                reachedBottom   = false;
+                if (!cooldownOk) {
+                    setFormHint('For rask — slow down', 'bad');
+                } else if (!formCheck.ok) {
+                    setFormHint(formCheck.hint || 'Dårlig form — rep godkjent ikke', 'bad');
+                } else {
+                    setFormHint('Ikke full range of motion', 'bad');
+                }
+                return { skeletonColor: 'red', smoothedAngle: smoothed };
+            }
         }
     }
 
-    updateFormHint(elbowAngle);
+    // Fade flash colour back to neutral after 600ms
+    const skeletonColor = (performance.now() - lastRepFlashAt < 600 && lastRepAccepted !== null)
+        ? (lastRepAccepted ? 'green' : 'red')
+        : 'neutral';
+
+    return { skeletonColor, smoothedAngle: smoothed };
 }
 
-function registerRep() {
+function updatePhaseHUD(angle, isAtTop, isAtBottom) {
+    const isPushup = exerciseType === 'pushup';
+    let phase = '', hint = '';
+
+    if (isAtTop) {
+        phase = isPushup ? 'Topp ↓' : 'Topp ✓';
+        hint  = isPushup ? 'Gå ned' : 'Heng ned for å starte';
+    } else if (isAtBottom) {
+        phase = isPushup ? 'Bunn ✓' : 'Opp!';
+        hint  = isPushup ? 'Push opp!' : 'Full høyde!';
+    } else {
+        const pct = isPushup
+            ? Math.round(((angle - BOTTOM_ANGLE) / (TOP_ANGLE - BOTTOM_ANGLE)) * 100)
+            : Math.round(((TOP_ANGLE - angle) / (TOP_ANGLE - BOTTOM_ANGLE)) * 100);
+        phase = `${Math.max(0, Math.min(100, pct))}%`;
+        hint  = isPushup ? 'Gå lavere for å telle' : 'Strekk armene fullstendig';
+    }
+
+    const phaseEl = document.getElementById('scanner-phase');
+    if (phaseEl) phaseEl.textContent = phase;
+    setFormHint(hint, 'ok');
+}
+
+function setFormHint(text, type = 'ok') {
+    const el = document.getElementById('scanner-form-hint');
+    if (!el) return;
+    el.textContent = text;
+    el.className = 'scanner-form-hint hint-' + type;
+}
+
+// ---- Rep accepted ----
+
+function acceptRep() {
     repCount++;
 
-    // Flash rep indicator
+    const countEl = document.getElementById('scanner-count');
+    if (countEl) {
+        countEl.textContent = repCount;
+        countEl.classList.add('rep-pop');
+        setTimeout(() => countEl.classList.remove('rep-pop'), 300);
+    }
+
     const flash = document.getElementById('scanner-rep-flash');
     if (flash) {
-        flash.textContent = `+1`;
+        flash.textContent = '+1';
+        flash.classList.remove('flash-active');
+        void flash.offsetWidth; // reflow to restart animation
         flash.classList.add('flash-active');
         setTimeout(() => flash.classList.remove('flash-active'), 600);
     }
 
-    // Vibrate on mobile
-    if (navigator.vibrate) navigator.vibrate(80);
-
-    if (onRepFn) onRepFn(repCount, repTarget);
-
-    // Update counter
-    const countEl = document.getElementById('scanner-count');
-    if (countEl) countEl.textContent = repCount;
-
-    // Update progress bar
     const bar = document.getElementById('scanner-progress-fill');
     if (bar) bar.style.width = Math.min(100, (repCount / repTarget) * 100) + '%';
+
+    if (navigator.vibrate) navigator.vibrate(80);
+    playRepTone();
+
+    if (onRepFn) onRepFn(repCount, repTarget);
 
     if (repCount >= repTarget) {
         stopScanner();
@@ -224,20 +412,17 @@ function registerRep() {
     }
 }
 
-function setPhaseLabel(text) {
-    const el = document.getElementById('scanner-phase');
-    if (el) el.textContent = text;
-}
-
-function updateFormHint(elbowAngle) {
-    const hint = document.getElementById('scanner-form-hint');
-    if (!hint) return;
-    const type = exerciseType;
-    if (type === 'pushup') {
-        hint.textContent = elbowAngle < 80 ? 'Full dybde!' : elbowAngle > 160 ? 'Rett opp og start' : 'Beveger seg...';
-    } else {
-        hint.textContent = elbowAngle < 80 ? 'Full høyde!' : elbowAngle > 160 ? 'Heng og start' : 'Beveger seg...';
-    }
+function playRepTone() {
+    try {
+        const actx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc  = actx.createOscillator();
+        const gain = actx.createGain();
+        osc.connect(gain); gain.connect(actx.destination);
+        osc.frequency.value = 880; osc.type = 'sine';
+        gain.gain.setValueAtTime(0.12, actx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.15);
+        osc.start(); osc.stop(actx.currentTime + 0.15);
+    } catch (_) {}
 }
 
 // ---- Drawing ----
@@ -257,14 +442,28 @@ const CONNECTIONS = [
     [KP.RIGHT_KNEE,     KP.RIGHT_ANKLE],
 ];
 
-function drawSkeleton(pose, ctx) {
-    ctx.strokeStyle = 'rgba(0,242,255,0.85)';
+const SKELETON_COLORS = {
+    neutral: 'rgba(0,242,255,0.85)',
+    green:   'rgba(0,255,128,0.95)',
+    red:     'rgba(255,80,80,0.95)'
+};
+const DOT_COLORS = {
+    neutral: 'rgba(0,242,255,1)',
+    green:   'rgba(0,255,128,1)',
+    red:     'rgba(255,80,80,1)'
+};
+
+function drawSkeleton(pose, ctx, color = 'neutral') {
+    const lineColor = SKELETON_COLORS[color] || SKELETON_COLORS.neutral;
+    const dotColor  = DOT_COLORS[color]  || DOT_COLORS.neutral;
+
+    ctx.strokeStyle = lineColor;
     ctx.lineWidth   = 3;
     ctx.lineCap     = 'round';
 
     CONNECTIONS.forEach(([i, j]) => {
-        const a = kp(pose, i);
-        const b = kp(pose, j);
+        const a = kp(pose, i, 0.2);
+        const b = kp(pose, j, 0.2);
         if (!a || !b) return;
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
@@ -273,10 +472,10 @@ function drawSkeleton(pose, ctx) {
     });
 
     pose.keypoints.forEach(k => {
-        if (k.score < 0.3) return;
+        if (k.score < 0.2) return;
         ctx.beginPath();
         ctx.arc(k.x, k.y, 5, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0,242,255,1)';
+        ctx.fillStyle = dotColor;
         ctx.fill();
         ctx.strokeStyle = 'rgba(0,0,0,0.5)';
         ctx.lineWidth = 1;
@@ -284,14 +483,48 @@ function drawSkeleton(pose, ctx) {
     });
 }
 
-function drawNoPersonHint(ctx, canvas) {
-    ctx.fillStyle = 'rgba(255,255,255,0.15)';
-    ctx.font = '16px sans-serif';
+// Draw small angle arc at the elbow for live feedback
+function drawAngleArc(pose, ctx, smoothedAngle) {
+    if (smoothedAngle === null) return;
+
+    // Find best elbow to annotate
+    const lE = kp(pose, KP.LEFT_ELBOW, 0.4);
+    const rE = kp(pose, KP.RIGHT_ELBOW, 0.4);
+    const elbow = lE || rE;
+    if (!elbow) return;
+
+    const radius = 22;
+    const pct    = Math.round(smoothedAngle);
+
+    // Arc fill based on angle vs target
+    const isPushup = exerciseType === 'pushup';
+    const atBottom = isPushup ? smoothedAngle < BOTTOM_ANGLE : smoothedAngle > TOP_ANGLE;
+    const arcColor = atBottom ? 'rgba(0,255,128,0.9)' : 'rgba(0,242,255,0.6)';
+
+    ctx.beginPath();
+    ctx.arc(elbow.x, elbow.y, radius, 0, (pct / 180) * Math.PI);
+    ctx.strokeStyle = arcColor;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Angle label
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 11px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Ingen person oppdaget — gå litt tilbake', canvas.width / 2, canvas.height / 2);
+    ctx.fillText(`${pct}°`, elbow.x, elbow.y - radius - 5);
 }
 
-// ---- Loading state ----
+function drawLowConfidenceHint(canvas, ctx, noPerson) {
+    ctx.fillStyle = 'rgba(255,200,0,0.7)';
+    ctx.font = '15px sans-serif';
+    ctx.textAlign = 'center';
+    const msg = noPerson
+        ? 'Ingen person oppdaget — gå litt tilbake'
+        : 'Lavt kamera-signal — juster belysning eller avstand';
+    ctx.fillText(msg, canvas.width / 2, canvas.height / 2);
+}
+
+// ---- Loading ----
 
 function showLoading(show) {
     const el = document.getElementById('scanner-loading');
