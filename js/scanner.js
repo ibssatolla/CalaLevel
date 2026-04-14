@@ -16,16 +16,17 @@ import { showToast } from './utils.js';
 
 // ---- Constants ----
 
-const MIN_CONFIDENCE = 0.4;   // minimum keypoint score to trust a reading
-const SMOOTH_WINDOW  = 6;     // frames to average for jitter reduction
-const COOLDOWN_MS    = 700;   // minimum ms between reps
+const MIN_CONFIDENCE = 0.3;   // minimum keypoint score to trust a reading
+const SMOOTH_WINDOW  = 5;     // frames to average for jitter reduction
+const COOLDOWN_MS    = 400;   // minimum ms between reps
 
-// Elbow angle thresholds
-const TOP_ANGLE    = 160;     // "straight" / locked out
-const BOTTOM_ANGLE = 90;      // "bent" / full depth
+// Elbow angle thresholds — generous ranges
+const TOP_ANGLE         = 150;  // "straight enough" / start/end position
+const BOTTOM_ANGLE      = 100;  // "deep enough" / full rep
+const BOTTOM_PARTIAL    = 115;  // "almost there" / partial rep (counts, shows hint)
 
-// Body alignment threshold (shoulder-hip-knee angle must be > this for straight body)
-const BODY_STRAIGHT_MIN = 150;
+// Body alignment — only block truly bad form
+const BODY_STRAIGHT_MIN = 120;
 
 // MoveNet keypoint indices
 const KP = {
@@ -76,10 +77,11 @@ export async function startChallengeScanner(challenge, callbacks) {
     lastRepAccepted = null;
     angleBuffer.length = 0;
 
-    repTarget    = challenge.target || 10;
-    exerciseType = detectExerciseType(challenge.title || '');
-    onRepFn      = callbacks.onRep;
-    onCompleteFn = callbacks.onComplete;
+    repTarget       = challenge.target || 10;
+    exerciseType    = detectExerciseType(challenge.title || '');
+    lowestAngleSeen = 180;
+    onRepFn         = callbacks.onRep;
+    onCompleteFn    = callbacks.onComplete;
 
     showLoading(true);
 
@@ -244,39 +246,40 @@ function smoothedElbowAngle(pose) {
 
 // ---- Form validation ----
 
+// Form check — returns hint text only; never blocks the rep
 function checkBodyForm(pose) {
-    // For push-ups: shoulder → hip → knee should be roughly straight
-    // For pull-ups: just ensure we can see the torso
     if (exerciseType !== 'pushup') return { ok: true, hint: '' };
 
-    const lS = kp(pose, KP.LEFT_SHOULDER, 0.3);
-    const lH = kp(pose, KP.LEFT_HIP,      0.3);
-    const lK = kp(pose, KP.LEFT_KNEE,     0.3);
-    const rS = kp(pose, KP.RIGHT_SHOULDER,0.3);
-    const rH = kp(pose, KP.RIGHT_HIP,     0.3);
-    const rK = kp(pose, KP.RIGHT_KNEE,    0.3);
+    const lS = kp(pose, KP.LEFT_SHOULDER, 0.25);
+    const lH = kp(pose, KP.LEFT_HIP,      0.25);
+    const lK = kp(pose, KP.LEFT_KNEE,     0.25);
+    const rS = kp(pose, KP.RIGHT_SHOULDER,0.25);
+    const rH = kp(pose, KP.RIGHT_HIP,     0.25);
+    const rK = kp(pose, KP.RIGHT_KNEE,    0.25);
 
     const la = angleBetween(lS, lH, lK);
     const ra = angleBetween(rS, rH, rK);
     const bodyAngle = (la !== null && ra !== null) ? (la + ra) / 2 : (la ?? ra);
 
+    // Only flag truly bad form (< 120°)
     if (bodyAngle !== null && bodyAngle < BODY_STRAIGHT_MIN) {
-        // Check if hips are sagging (hip lower than shoulder-ankle line) or piking
-        const hipY = ((lH?.y ?? 0) + (rH?.y ?? 0)) / 2;
+        const hipY      = ((lH?.y ?? 0) + (rH?.y ?? 0)) / 2;
         const shoulderY = ((lS?.y ?? 0) + (rS?.y ?? 0)) / 2;
-        const kneeY = ((lK?.y ?? 0) + (rK?.y ?? 0)) / 2;
-        const expectedHipY = (shoulderY + kneeY) / 2;
-        const sag = hipY - expectedHipY; // positive = hips sagging down
+        const kneeY     = ((lK?.y ?? 0) + (rK?.y ?? 0)) / 2;
+        const sag       = hipY - (shoulderY + kneeY) / 2;
 
-        if (sag > 30) return { ok: false, hint: 'Hold kroppen rett — hofter henger for lavt' };
-        if (sag < -30) return { ok: false, hint: 'Hold kroppen rett — hofter for høyt (pike)' };
-        return { ok: false, hint: 'Strekk ut kroppen' };
+        if (sag > 40)  return { ok: false, hint: 'Hofter henger — strekk kroppen' };
+        if (sag < -40) return { ok: false, hint: 'Hofter for høyt — senk dem litt' };
+        return { ok: false, hint: 'Hold kroppen rettere' };
     }
 
     return { ok: true, hint: '' };
 }
 
 // ---- Rep state machine ----
+
+// Track lowest angle seen since leaving top — for partial rep detection
+let lowestAngleSeen = 180;
 
 function processFrame(pose) {
     const smoothed = smoothedElbowAngle(pose);
@@ -286,60 +289,95 @@ function processFrame(pose) {
     }
 
     const isPushup = exerciseType === 'pushup';
-    // For push-ups: top = straight arms, bottom = bent arms
-    // For pull-ups/dips: top = bent arms, bottom = straight arms
-    const isAtTop    = isPushup ? smoothed > TOP_ANGLE    : smoothed < BOTTOM_ANGLE;
-    const isAtBottom = isPushup ? smoothed < BOTTOM_ANGLE : smoothed > TOP_ANGLE;
+    // push-up: TOP = arms straight (>TOP_ANGLE), BOTTOM = arms bent (<BOTTOM_ANGLE)
+    // pull-up: TOP = arms bent (<BOTTOM_ANGLE),  BOTTOM = arms straight (>TOP_ANGLE)
+    const isAtTop        = isPushup ? smoothed > TOP_ANGLE     : smoothed < BOTTOM_ANGLE;
+    const isFullBottom   = isPushup ? smoothed < BOTTOM_ANGLE  : smoothed > TOP_ANGLE;
+    const isPartialBottom= isPushup ? smoothed < BOTTOM_PARTIAL: smoothed > (TOP_ANGLE - 15);
 
-    // Update phase label
-    updatePhaseHUD(smoothed, isAtTop, isAtBottom);
+    // Track deepest point reached since leaving top
+    if (isPushup) {
+        lowestAngleSeen = Math.min(lowestAngleSeen, smoothed);
+    } else {
+        lowestAngleSeen = Math.max(lowestAngleSeen, smoothed);
+    }
 
-    // State transitions
-    if (repPhase === 'waiting_top' || repPhase === 'at_top') {
+    updatePhaseHUD(smoothed, isAtTop, isFullBottom);
+
+    // ---- Soft state machine ----
+    // States: 'waiting_top' | 'at_top' | 'descending' | 'ascending'
+
+    if (repPhase === 'waiting_top') {
         if (isAtTop) {
             repPhase = 'at_top';
-        } else if (repPhase === 'at_top') {
-            repPhase = 'going_down';
+            lowestAngleSeen = isPushup ? 180 : 0;
         }
-    } else if (repPhase === 'going_down') {
-        if (isAtBottom) {
-            repPhase = 'at_bottom';
-            reachedBottom = true;
+
+    } else if (repPhase === 'at_top') {
+        if (!isAtTop) {
+            repPhase = 'descending';
+            lowestAngleSeen = smoothed;
         }
-    } else if (repPhase === 'at_bottom' || repPhase === 'going_up') {
-        if (!isAtBottom) repPhase = 'going_up';
-        if (isAtTop && repPhase === 'going_up') {
-            // Completed full TOP → BOTTOM → TOP sequence
+
+    } else if (repPhase === 'descending') {
+        if (isPushup) {
+            lowestAngleSeen = Math.min(lowestAngleSeen, smoothed);
+        } else {
+            lowestAngleSeen = Math.max(lowestAngleSeen, smoothed);
+        }
+        // Once they start coming back up, switch to ascending
+        const reversingUp = isPushup
+            ? smoothed > lowestAngleSeen + 8
+            : smoothed < lowestAngleSeen - 8;
+        if (reversingUp) {
+            repPhase = 'ascending';
+        }
+
+    } else if (repPhase === 'ascending') {
+        if (isAtTop) {
             repPhase = 'at_top';
 
-            const now      = performance.now();
+            const now        = performance.now();
             const cooldownOk = (now - lastRepTime) >= COOLDOWN_MS;
+
+            if (!cooldownOk) {
+                // Still in cooldown — silently ignore, reset
+                lowestAngleSeen = isPushup ? 180 : 0;
+                return { skeletonColor: 'neutral', smoothedAngle: smoothed };
+            }
+
+            // Determine rep quality
+            const fullRep    = isPushup ? lowestAngleSeen < BOTTOM_ANGLE   : lowestAngleSeen > TOP_ANGLE;
+            const partialRep = isPushup ? lowestAngleSeen < BOTTOM_PARTIAL : lowestAngleSeen > (TOP_ANGLE - 15);
             const formCheck  = checkBodyForm(pose);
 
-            if (cooldownOk && reachedBottom && formCheck.ok) {
+            lowestAngleSeen = isPushup ? 180 : 0;
+
+            if (fullRep || partialRep) {
                 lastRepTime     = now;
-                reachedBottom   = false;
                 lastRepAccepted = true;
                 lastRepFlashAt  = now;
+
+                if (!fullRep) {
+                    setFormHint('Gå litt lavere neste gang', 'warn');
+                } else if (!formCheck.ok) {
+                    setFormHint(formCheck.hint, 'warn'); // warn but still count
+                } else {
+                    setFormHint('Rep godkjent ✓', 'ok');
+                }
                 acceptRep();
                 return { skeletonColor: 'green', smoothedAngle: smoothed };
             } else {
+                // No meaningful movement detected
                 lastRepAccepted = false;
                 lastRepFlashAt  = now;
-                reachedBottom   = false;
-                if (!cooldownOk) {
-                    setFormHint('For rask — slow down', 'bad');
-                } else if (!formCheck.ok) {
-                    setFormHint(formCheck.hint || 'Dårlig form — rep godkjent ikke', 'bad');
-                } else {
-                    setFormHint('Ikke full range of motion', 'bad');
-                }
+                setFormHint(isPushup ? 'Gå mye lavere' : 'Strekk armene helt ut', 'bad');
                 return { skeletonColor: 'red', smoothedAngle: smoothed };
             }
         }
     }
 
-    // Fade flash colour back to neutral after 600ms
+    // Fade skeleton colour back to neutral after 600ms
     const skeletonColor = (performance.now() - lastRepFlashAt < 600 && lastRepAccepted !== null)
         ? (lastRepAccepted ? 'green' : 'red')
         : 'neutral';
