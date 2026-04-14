@@ -213,45 +213,46 @@
                 <div class="ios-nav-bar">
                     <h1 class="ios-large-title">Trening</h1>
                 </div>
-                <!-- Top-level tabs: Treningsøkt / Program -->
+                <!-- Top-level tabs: Quick Workout / Program -->
                 <div class="train-tabs">
-                    <button class="train-tab active" data-train-tab="session">Treningsøkt</button>
+                    <button class="train-tab active" data-train-tab="session">Quick Workout</button>
                     <button class="train-tab" data-train-tab="program">Program</button>
                 </div>
 
-                <!-- TAB 1: Treningsøkt -->
+                <!-- TAB 1: Quick Workout -->
                 <div id="train-tab-session" class="train-tab-content active">
-                    <p class="section-subtitle">Velg en treningsøkt og start.</p>
 
-                    <div class="workout-selection">
-                        <div class="workout-card glass-card" data-type="push">
-                            <span class="workout-icon">💪</span>
-                            <h3>Push Day</h3>
-                        </div>
-                        <div class="workout-card glass-card" data-type="pull">
-                            <span class="workout-icon">🏋️‍♂️</span>
-                            <h3>Pull Day</h3>
-                        </div>
-                        <div class="workout-card glass-card" data-type="full">
-                            <span class="workout-icon">🔥</span>
-                            <h3>Full Body</h3>
-                        </div>
-                        <div class="workout-card glass-card" data-type="skill">
-                            <span class="workout-icon">🎯</span>
-                            <h3>Skill Practice</h3>
+                    <!-- Duration selector -->
+                    <div class="qw-section">
+                        <div class="qw-label">Varighet</div>
+                        <div class="qw-pills" id="qw-duration-pills">
+                            <button class="qw-pill" data-value="10">10 min</button>
+                            <button class="qw-pill active" data-value="20">20 min</button>
+                            <button class="qw-pill" data-value="30">30 min</button>
                         </div>
                     </div>
 
+                    <!-- Focus selector -->
+                    <div class="qw-section">
+                        <div class="qw-label">Fokus</div>
+                        <div class="qw-pills" id="qw-focus-pills">
+                            <button class="qw-pill" data-value="push">Push</button>
+                            <button class="qw-pill" data-value="pull">Pull</button>
+                            <button class="qw-pill active" data-value="full">Full Body</button>
+                            <button class="qw-pill" data-value="skill">Skills</button>
+                        </div>
+                    </div>
+
+                    <!-- Start CTA -->
+                    <button class="qw-start-btn" id="qw-start-btn">Start Workout</button>
+
+                    <!-- Active session panel (used by schedule/program flow) -->
                     <div id="active-session-panel" class="active-session-panel hidden">
                         <div class="session-header">
                             <h3 id="session-title">Push Day</h3>
                             <span class="session-timer">00:00</span>
                         </div>
-
-                        <div id="exercise-list" class="exercise-list">
-                            <!-- Rendered by JS -->
-                        </div>
-
+                        <div id="exercise-list" class="exercise-list"></div>
                         <div class="session-summary-card glass-card hidden" id="session-summary">
                             <h3>Session Complete!</h3>
                             <div class="summary-stats">
@@ -270,7 +271,6 @@
                             </div>
                             <button id="close-session-btn" class="cta-button primary full-width">Finish</button>
                         </div>
-
                         <button id="complete-session-btn" class="cta-button primary full-width">Complete Session</button>
                     </div>
                 </div>
@@ -439,6 +439,59 @@
                     </div>
                 </div>
             </section>
+            <!-- Quick Workout Flow Screen -->
+            <section id="quick-flow" class="page qf-page">
+                <div class="ios-nav-bar">
+                    <button class="ios-back-btn" id="qf-back-btn">Stop</button>
+                    <h1 class="ios-large-title" id="qf-workout-title">Workout</h1>
+                </div>
+                <div class="qf-body">
+                    <div class="qf-progress-bar">
+                        <div class="qf-progress-fill" id="qf-progress-bar-fill"></div>
+                    </div>
+                    <div class="qf-ex-dots" id="qf-ex-dots"></div>
+                    <div class="qf-media">
+                        <img class="qf-gif" id="qf-exercise-gif" src="" alt="">
+                    </div>
+                    <div class="qf-info">
+                        <div class="qf-set-progress" id="qf-set-progress">Set 1 / 3</div>
+                        <div class="qf-exercise-name" id="qf-exercise-name">Push-ups</div>
+                        <div class="qf-rep-target" id="qf-rep-target">12 reps</div>
+                    </div>
+                    <div class="qf-actions">
+                        <button class="qf-skip-btn" id="qf-skip-btn">Skip</button>
+                        <button class="qf-done-btn" id="qf-done-btn">Done</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Workout Completion Screen -->
+            <section id="quick-complete" class="page qc-page">
+                <div class="qc-body">
+                    <div class="qc-check">
+                        <svg viewBox="0 0 32 32" fill="none" width="32" height="32">
+                            <polyline points="6,16 13,23 26,10" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h1 class="qc-title">Workout Complete</h1>
+                    <div class="qc-stats">
+                        <div class="qc-stat">
+                            <div class="qc-val" id="qc-xp">+50 XP</div>
+                            <div class="qc-label">XP tjent</div>
+                        </div>
+                        <div class="qc-stat">
+                            <div class="qc-val" id="qc-exercises">3</div>
+                            <div class="qc-label">Exercises</div>
+                        </div>
+                        <div class="qc-stat">
+                            <div class="qc-val" id="qc-sets">9</div>
+                            <div class="qc-label">Sets</div>
+                        </div>
+                    </div>
+                    <button class="cta-button primary full-width" id="qc-done-btn">Done</button>
+                </div>
+            </section>
+
             <!-- Exercise Detail Screen -->
             <section id="exercise-detail" class="page">
                 <div class="ios-nav-bar">

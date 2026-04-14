@@ -1179,6 +1179,229 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ============================================================
+    //  QUICK WORKOUT — Generator, Flow, Completion
+    // ============================================================
+
+    // Exercise pool per focus type (references exerciseLibrary ids)
+    const quickTemplates = {
+        push:  ['push1', 'push2', 'push3', 'push5', 'push4'],
+        pull:  ['pull1', 'pull2', 'pull3', 'pull5', 'pull4'],
+        full:  ['push1', 'legs1', 'pull1', 'core1', 'legs2'],
+        skill: ['skill1', 'skill3', 'core3', 'skill2', 'core2'],
+    };
+
+    // Duration → exercise count + sets each
+    const quickDurationConfig = {
+        10: { exCount: 2, sets: 2 },
+        20: { exCount: 3, sets: 3 },
+        30: { exCount: 4, sets: 4 },
+    };
+
+    function generateQuickWorkout(duration, focus) {
+        const config = quickDurationConfig[duration] || quickDurationConfig[20];
+        const pool   = quickTemplates[focus] || quickTemplates.full;
+        return pool.slice(0, config.exCount).map(id => {
+            const lib = exerciseLibrary.find(e => e.id === id);
+            if (!lib) return null;
+            const defaultReps = lib.difficulty === 3 ? 5 : lib.difficulty === 2 ? 8 : 12;
+            return {
+                id:    lib.id,
+                name:  lib.name,
+                image: lib.image,
+                sets:  config.sets,
+                reps:  lib.reps || defaultReps,
+            };
+        }).filter(Boolean);
+    }
+
+    // Quick workout selector state
+    let qwDuration = 20;
+    let qwFocus    = 'full';
+
+    // Wire duration pills
+    document.querySelectorAll('#qw-duration-pills .qw-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#qw-duration-pills .qw-pill').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            qwDuration = parseInt(btn.getAttribute('data-value'));
+        });
+    });
+
+    // Wire focus pills
+    document.querySelectorAll('#qw-focus-pills .qw-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#qw-focus-pills .qw-pill').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            qwFocus = btn.getAttribute('data-value');
+        });
+    });
+
+    // Start button
+    document.getElementById('qw-start-btn')?.addEventListener('click', () => {
+        startQuickWorkout(qwDuration, qwFocus);
+    });
+
+    // Quick flow state
+    let qfState = {
+        exercises: [],
+        exIdx: 0,
+        setIdx: 0,
+        completedSets: 0,
+        totalReps: 0,
+        focus: 'full',
+        duration: 20,
+        xpFromSets: 0,
+    };
+
+    function startQuickWorkout(duration, focus) {
+        const exercises = generateQuickWorkout(duration, focus);
+        if (!exercises.length) return;
+        qfState = {
+            exercises,
+            exIdx: 0,
+            setIdx: 0,
+            completedSets: 0,
+            totalReps: 0,
+            focus,
+            duration,
+            xpFromSets: 0,
+        };
+        const titles = { push: 'Push', pull: 'Pull', full: 'Full Body', skill: 'Skills' };
+        const titleEl = document.getElementById('qf-workout-title');
+        if (titleEl) titleEl.textContent = titles[focus] || 'Workout';
+        renderQuickFlow();
+        showPage('quick-flow');
+    }
+
+    function renderQuickFlow() {
+        const ex = qfState.exercises[qfState.exIdx];
+        if (!ex) return;
+
+        const totalSetsAll = qfState.exercises.reduce((s, e) => s + e.sets, 0);
+        const pct = totalSetsAll > 0 ? (qfState.completedSets / totalSetsAll) * 100 : 0;
+
+        // Progress bar
+        const fill = document.getElementById('qf-progress-bar-fill');
+        if (fill) fill.style.width = pct + '%';
+
+        // Exercise dots
+        const dots = document.getElementById('qf-ex-dots');
+        if (dots) dots.innerHTML = qfState.exercises.map((e, i) => {
+            const cls = i < qfState.exIdx ? 'done' : i === qfState.exIdx ? 'active' : '';
+            return `<div class="qf-ex-dot ${cls}"></div>`;
+        }).join('');
+
+        // GIF
+        const gif = document.getElementById('qf-exercise-gif');
+        if (gif && gif.src !== ex.image) gif.src = ex.image || '';
+
+        // Text
+        const setNum = qfState.setIdx + 1;
+        const setEl = document.getElementById('qf-set-progress');
+        const nameEl = document.getElementById('qf-exercise-name');
+        const repEl  = document.getElementById('qf-rep-target');
+        if (setEl)  setEl.textContent  = `Set ${setNum} / ${ex.sets}`;
+        if (nameEl) nameEl.textContent = ex.name;
+        if (repEl)  repEl.textContent  = typeof ex.reps === 'number' ? `${ex.reps} reps` : ex.reps;
+    }
+
+    function advanceQuickFlow(counted) {
+        const ex = qfState.exercises[qfState.exIdx];
+        if (counted) {
+            const reps = typeof ex.reps === 'number' ? ex.reps : 0;
+            qfState.totalReps += reps;
+            qfState.xpFromSets += 3;
+            state.data.userProfile.xp += 3;
+            checkLevelUp();
+            saveState();
+            renderProfile();
+        }
+        qfState.completedSets++;
+
+        if (qfState.setIdx + 1 < ex.sets) {
+            qfState.setIdx++;
+            renderQuickFlow();
+        } else {
+            qfState.exIdx++;
+            qfState.setIdx = 0;
+            if (qfState.exIdx >= qfState.exercises.length) {
+                finishQuickWorkout();
+            } else {
+                renderQuickFlow();
+            }
+        }
+    }
+
+    function finishQuickWorkout() {
+        const doneFully = Math.min(qfState.exIdx, qfState.exercises.length);
+        const bonus = doneFully >= qfState.exercises.length ? 50 : Math.max(5, doneFully * 10);
+
+        state.data.userProfile.xp += bonus;
+        state.data.userProfile.stats.workouts += 1;
+        state.data.userProfile.stats.reps += qfState.totalReps;
+
+        checkLevelUp();
+
+        const stats = state.data.userProfile.stats;
+        if (stats.workouts === 1)   unlockAchievement('first_workout');
+        if (stats.workouts >= 10)   unlockAchievement('ten_workouts');
+        if (stats.reps >= 1000)     unlockAchievement('reps_1000');
+        if (stats.reps >= 10000)    unlockAchievement('reps_10000');
+
+        const focusLabels = { push: 'Push', pull: 'Pull', full: 'Full Body', skill: 'Skills' };
+        state.data.userProfile.activity.unshift({
+            id: Date.now(),
+            title: (focusLabels[qfState.focus] || 'Quick') + ' Workout',
+            date: 'Akkurat nå',
+            xp: qfState.xpFromSets + bonus,
+        });
+        if (state.data.userProfile.activity.length > 10) {
+            state.data.userProfile.activity = state.data.userProfile.activity.slice(0, 10);
+        }
+
+        state.data.workoutHistory.push({
+            date: new Date().toISOString(),
+            type: qfState.focus,
+            duration: qfState.duration,
+            exercises: qfState.exercises,
+            stats: {
+                sets: qfState.completedSets,
+                reps: qfState.totalReps,
+                xp: qfState.xpFromSets + bonus,
+            },
+        });
+        saveState();
+        renderProfile();
+
+        const totalXP = qfState.xpFromSets + bonus;
+        const xpEl   = document.getElementById('qc-xp');
+        const exEl   = document.getElementById('qc-exercises');
+        const setsEl = document.getElementById('qc-sets');
+        if (xpEl)   xpEl.textContent   = `+${totalXP} XP`;
+        if (exEl)   exEl.textContent   = doneFully;
+        if (setsEl) setsEl.textContent = qfState.completedSets;
+
+        showPage('quick-complete');
+    }
+
+    // Quick flow button wiring
+    document.getElementById('qf-done-btn')?.addEventListener('click', () => {
+        advanceQuickFlow(true);
+    });
+    document.getElementById('qf-skip-btn')?.addEventListener('click', () => {
+        advanceQuickFlow(false);
+    });
+    document.getElementById('qf-back-btn')?.addEventListener('click', () => {
+        showPage('train');
+    });
+    document.getElementById('qc-done-btn')?.addEventListener('click', () => {
+        showPage('train');
+        showToast('Bra jobbet!', `Workout lagret.`);
+    });
+
+    // ============================================================
+
     // Tracks which exercises are expanded
     const expandedExercises = new Set();
 

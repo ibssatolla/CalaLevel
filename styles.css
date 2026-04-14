@@ -4181,3 +4181,306 @@ spline-viewer {
 }
 
 .ex-session-thumb:active { transform: scale(0.9); }
+
+/* ============================================================
+   QUICK WORKOUT SELECTOR
+   ============================================================ */
+
+.qw-section {
+    padding: 20px 16px 0;
+}
+
+.qw-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--ios-label2);
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    margin-bottom: 10px;
+}
+
+.qw-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.qw-pill {
+    padding: 10px 20px;
+    border-radius: 22px;
+    border: 1.5px solid var(--ios-separator);
+    background: var(--ios-bg2);
+    color: var(--ios-label2);
+    font-family: var(--font-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.qw-pill.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #000;
+}
+
+.qw-pill:active {
+    transform: scale(0.94);
+}
+
+.qw-start-btn {
+    display: block;
+    margin: 24px 16px 0;
+    width: calc(100% - 32px);
+    padding: 18px 0;
+    background: var(--primary);
+    color: #000;
+    border: none;
+    border-radius: 16px;
+    font-family: var(--font-main);
+    font-size: 1.05rem;
+    font-weight: 800;
+    cursor: pointer;
+    letter-spacing: 0.2px;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.qw-start-btn:active {
+    transform: scale(0.97);
+    opacity: 0.85;
+}
+
+/* ============================================================
+   QUICK WORKOUT FLOW SCREEN
+   ============================================================ */
+
+.qf-page .ios-nav-bar {
+    flex-shrink: 0;
+}
+
+.qf-body {
+    display: flex;
+    flex-direction: column;
+    padding: 0 16px calc(var(--tab-height) + 16px);
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Thin progress bar */
+.qf-progress-bar {
+    height: 3px;
+    background: var(--ios-bg3);
+    border-radius: 2px;
+    margin: 6px 0 14px;
+    overflow: hidden;
+}
+
+.qf-progress-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 2px;
+    transition: width 0.35s ease;
+    width: 0%;
+}
+
+/* Exercise dot indicators */
+.qf-ex-dots {
+    display: flex;
+    gap: 7px;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.qf-ex-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ios-bg3);
+    transition: all 0.2s;
+}
+
+.qf-ex-dot.active {
+    background: var(--primary);
+    transform: scale(1.3);
+}
+
+.qf-ex-dot.done {
+    background: rgba(0, 242, 255, 0.3);
+}
+
+/* GIF area */
+.qf-media {
+    width: 100%;
+    height: 200px;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--ios-bg2);
+    flex-shrink: 0;
+}
+
+.qf-gif {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Exercise info block */
+.qf-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px 0 16px;
+    gap: 4px;
+}
+
+.qf-set-progress {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+}
+
+.qf-exercise-name {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: var(--ios-label);
+    line-height: 1.1;
+    margin-top: 2px;
+}
+
+.qf-rep-target {
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--ios-label);
+    letter-spacing: -1.5px;
+    line-height: 1;
+    margin-top: 6px;
+}
+
+/* Action buttons */
+.qf-actions {
+    display: flex;
+    gap: 10px;
+    padding-top: 4px;
+}
+
+.qf-skip-btn {
+    flex: 1;
+    padding: 16px 0;
+    background: var(--ios-bg2);
+    border: 1.5px solid var(--ios-separator);
+    color: var(--ios-label2);
+    border-radius: 14px;
+    font-family: var(--font-main);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.15s;
+}
+
+.qf-done-btn {
+    flex: 2;
+    padding: 16px 0;
+    background: var(--primary);
+    border: none;
+    color: #000;
+    border-radius: 14px;
+    font-family: var(--font-main);
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.15s;
+}
+
+.qf-skip-btn:active { transform: scale(0.96); background: var(--ios-bg3); }
+.qf-done-btn:active { transform: scale(0.96); opacity: 0.85; }
+
+/* ============================================================
+   QUICK WORKOUT COMPLETION SCREEN
+   ============================================================ */
+
+.qc-page {
+    display: flex;
+    flex-direction: column;
+}
+
+.qc-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    padding: 40px 24px calc(var(--tab-height) + 32px);
+    gap: 24px;
+    text-align: center;
+}
+
+.qc-check {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(0, 242, 255, 0.08);
+    border: 1.5px solid var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.qc-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--ios-label);
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+}
+
+.qc-stats {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.qc-stat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: var(--ios-bg2);
+    border: 0.5px solid var(--ios-separator);
+    border-radius: 16px;
+    padding: 16px 8px;
+}
+
+.qc-val {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: var(--ios-label);
+    line-height: 1;
+}
+
+.qc-stat:first-child .qc-val {
+    color: var(--primary);
+}
+
+.qc-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--ios-label2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+
+.qc-body .cta-button.primary.full-width {
+    width: 100%;
+    margin-top: 8px;
+}
