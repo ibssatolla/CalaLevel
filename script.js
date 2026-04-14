@@ -547,26 +547,42 @@ document.addEventListener('DOMContentLoaded', () => {
         const grid = document.getElementById('weekly-schedule');
         if (!grid) return;
 
-        grid.innerHTML = state.data.weeklySchedule.map((day, index) => `
-            <div class="day-card ${day.type === 'rest' ? 'rest-day' : ''}" onclick="loadGeneratedWorkout(${index})">
-                <span class="day-name">${day.day}</span>
+        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const todayName = days[new Date().getDay()];
+        grid.innerHTML = state.data.weeklySchedule.map((day, index) => {
+            const isToday = day.day === todayName;
+            const isRest  = day.type === 'rest';
+            return `
+            <div class="day-card ${isRest ? 'rest-day' : ''} ${isToday ? 'today-day' : ''}"
+                 onclick="loadGeneratedWorkout(${index})">
+                <span class="day-name">${day.day}${isToday ? ' · I dag' : ''}</span>
                 <span class="workout-type">${day.title}</span>
-                <span class="workout-duration">${day.type === 'rest' ? 'Relax' : '45-60 min'}</span>
-            </div>
-        `).join('');
+                <span class="workout-duration">${isRest ? '😴 Hvil' : '⚡ ' + (day.exercises?.length || 0) + ' øvelser'}</span>
+                ${!isRest ? '<span class="day-arrow">›</span>' : ''}
+            </div>`;
+        }).join('');
     }
 
     // Global function to load a workout from the schedule
     window.loadGeneratedWorkout = function (index) {
         const day = state.data.weeklySchedule[index];
         if (day.type === 'rest') {
-            showToast('Rest Day', 'Take it easy today! 🧘‍♂️');
+            showToast('Hviledag', 'Ta det med ro i dag! 🧘‍♂️');
             return;
         }
 
-        // Use the new startSession with custom exercises
         startSession(day.type, JSON.parse(JSON.stringify(day.exercises)));
+
+        // Switch to Treningsøkt tab so the session is visible
+        document.querySelectorAll('.train-tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.train-tab-content').forEach(c => c.classList.remove('active'));
+        const sessionTab = document.querySelector('[data-train-tab="session"]');
+        if (sessionTab) sessionTab.classList.add('active');
+        const sessionContent = document.getElementById('train-tab-session');
+        if (sessionContent) sessionContent.classList.add('active');
+
         showPage('train');
+        showToast('Økt startet', day.title + ' 🔥');
     };
 
     let currentLibFilter = 'all';
@@ -967,15 +983,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const setRows = ex.setData.map((s, si) => {
                 const prev = lastSession?.sets?.[si];
                 const prevHint = prev
-                    ? `<span class="prev-hint" title="Forrige økt">${prev.reps} reps${prev.kg > 0 ? ` @ ${prev.kg}kg` : ''}</span>`
+                    ? `<div class="prev-hint">${prev.reps}r${prev.kg > 0 ? `·${prev.kg}k` : ''}</div>`
                     : '';
                 return `
                 <div class="set-row ${s.done ? 'set-done' : ''}">
                     <span class="set-num">${si + 1}</span>
-                    <div class="counter-ui small">
-                        <button class="counter-btn" onclick="updateSetReps(${ei},${si},-1)" ${s.done ? 'disabled' : ''}>−</button>
-                        <span class="counter-val">${s.reps}</span>
-                        <button class="counter-btn" onclick="updateSetReps(${ei},${si},1)" ${s.done ? 'disabled' : ''}>+</button>
+                    <div class="set-reps-col">
+                        <div class="counter-ui small">
+                            <button class="counter-btn" onclick="updateSetReps(${ei},${si},-1)" ${s.done ? 'disabled' : ''}>−</button>
+                            <span class="counter-val">${s.reps}</span>
+                            <button class="counter-btn" onclick="updateSetReps(${ei},${si},1)" ${s.done ? 'disabled' : ''}>+</button>
+                        </div>
+                        ${prevHint}
                     </div>
                     <input
                         type="number"
@@ -983,16 +1002,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         data-ei="${ei}" data-si="${si}"
                         value="${s.kg}"
                         min="0" max="500" step="0.5"
-                        placeholder="0"
+                        placeholder="kg"
                         ${s.done ? 'disabled' : ''}
                     />
-                    ${prevHint}
                     <button class="set-done-btn ${s.done ? 'done' : ''}"
-                        onclick="markSetDone(${ei},${si})"
-                        title="${s.done ? 'Angre' : 'Marker sett ferdig'}">
+                        onclick="markSetDone(${ei},${si})">
                         ${s.done ? '✓' : 'Ferdig'}
                     </button>
-                    <button class="remove-set-btn" onclick="removeSet(${ei},${si})" ${s.done ? 'disabled' : ''} title="Slett sett">✕</button>
+                    <button class="remove-set-btn" onclick="removeSet(${ei},${si})" ${s.done ? 'disabled' : ''} title="Slett">✕</button>
                 </div>`;
             }).join('');
 
@@ -1011,9 +1028,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="exercise-body ${isOpen ? '' : 'hidden'}">
                     <div class="set-rows">
                         <div class="set-row-header">
-                            <span>Sett</span><span>Reps</span><span>Kg</span>
-                            ${lastSession ? '<span class="prev-col">Forrige</span>' : '<span></span>'}
-                            <span></span><span></span>
+                            <span>#</span>
+                            <span>Reps${lastSession ? ' (forrige)' : ''}</span>
+                            <span>Kg</span>
+                            <span></span>
+                            <span></span>
                         </div>
                         ${setRows}
                     </div>
