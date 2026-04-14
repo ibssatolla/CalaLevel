@@ -115,37 +115,155 @@
             </section>
 
 
-            <section id="community" class="battles-section page">
+            <section id="community" class="arena-page page">
                 <div class="ios-nav-bar">
-                    <h1 class="ios-large-title">Arenaen</h1>
+                    <h1 class="ios-large-title">Arena</h1>
                 </div>
-                <p class="section-subtitle" style="padding: 8px 16px 0;">Compete with friends and rivals.</p>
 
-                <div class="battles-container">
-                    <!-- Active Challenges Column -->
-                    <div class="challenges-column">
-                        <h3>Active Challenges</h3>
-                        <div id="challenges-list" class="challenges-list">
-                            <!-- Challenges rendered by JS -->
+                <!-- Segmented control -->
+                <div class="arena-seg-wrap">
+                    <div class="arena-seg-control">
+                        <button class="arena-seg active" data-arena-tab="challenges">Challenges</button>
+                        <button class="arena-seg" data-arena-tab="feed">Feed</button>
+                    </div>
+                </div>
+
+                <!-- TAB: Challenges -->
+                <div id="arena-tab-challenges" class="arena-tab active">
+                    <div id="challenges-list" class="challenges-list"></div>
+                    <div class="arena-lb-section">
+                        <div class="arena-section-label">Leaderboard</div>
+                        <div class="arena-lb-card glass-card">
+                            <div class="arena-lb-header">
+                                <span>Rank</span><span>Athlete</span><span>XP</span>
+                            </div>
+                            <div id="leaderboard-list" class="leaderboard-list"></div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Leaderboard Column -->
-                    <div class="leaderboard-column">
-                        <h3>Global Leaderboard</h3>
-                        <div class="leaderboard-card glass-card">
-                            <div class="leaderboard-header">
-                                <span>Rank</span>
-                                <span>Athlete</span>
-                                <span>XP</span>
+                <!-- TAB: Feed -->
+                <div id="arena-tab-feed" class="arena-tab">
+                    <div id="arena-feed" class="arena-feed"></div>
+                </div>
+
+                <!-- Floating Action Button -->
+                <button class="arena-fab" id="arena-fab" aria-label="New post">
+                    <svg viewBox="0 0 24 24" fill="none" width="22" height="22">
+                        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </button>
+
+                <!-- FAB action sheet -->
+                <div class="arena-fab-sheet hidden" id="arena-fab-sheet">
+                    <button class="arena-fab-option" id="arena-opt-record">
+                        <span class="afo-icon">
+                            <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+                                <circle cx="12" cy="12" r="5" fill="var(--primary)"/>
+                                <circle cx="12" cy="12" r="10" stroke="var(--primary)" stroke-width="1.5" opacity="0.4"/>
+                            </svg>
+                        </span>
+                        <span>Record</span>
+                    </button>
+                    <button class="arena-fab-option" id="arena-opt-post">
+                        <span class="afo-icon">
+                            <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+                                <rect x="3" y="3" width="18" height="14" rx="2" stroke="var(--primary)" stroke-width="1.5"/>
+                                <path d="M8 21h8M12 17v4" stroke="var(--primary)" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </span>
+                        <span>Post</span>
+                    </button>
+                </div>
+                <div class="arena-fab-backdrop hidden" id="arena-fab-backdrop"></div>
+            </section>
+
+            <!-- Arena Record Screen -->
+            <section id="arena-record" class="page ar-page">
+                <video id="ar-preview" class="ar-preview" autoplay muted playsinline></video>
+
+                <!-- Top HUD -->
+                <div class="ar-hud-top">
+                    <button class="ar-close-btn" id="ar-close-btn">
+                        <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+                            <path d="M6 6l12 12M18 6L6 18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <div class="ar-rep-display">
+                        <div class="ar-rep-count" id="ar-rep-count">0</div>
+                        <div class="ar-rep-label">REPS</div>
+                    </div>
+                    <div class="ar-timer-display" id="ar-timer">0:00</div>
+                </div>
+
+                <!-- Exercise selector -->
+                <div class="ar-ex-selector" id="ar-ex-selector">
+                    <button class="ar-ex-pill active" data-ex="push1">Push-ups</button>
+                    <button class="ar-ex-pill" data-ex="pull1">Pull-ups</button>
+                    <button class="ar-ex-pill" data-ex="push2">Dips</button>
+                </div>
+
+                <!-- Manual rep count button (visible during recording) -->
+                <button class="ar-manual-rep hidden" id="ar-manual-rep">+ Rep</button>
+
+                <!-- Record controls -->
+                <div class="ar-controls">
+                    <button class="ar-record-btn" id="ar-record-btn">
+                        <div class="ar-record-inner" id="ar-record-inner"></div>
+                    </button>
+                </div>
+
+                <!-- Post-recording result overlay -->
+                <div class="ar-result-overlay hidden" id="ar-result-overlay">
+                    <div class="ar-result-card glass-card">
+                        <div class="ar-result-title">Session Complete</div>
+                        <div class="ar-result-stats">
+                            <div class="ar-result-stat">
+                                <div class="ar-result-val" id="ar-result-reps">0</div>
+                                <div class="ar-result-lbl">Reps</div>
                             </div>
-                            <div id="leaderboard-list" class="leaderboard-list">
-                                <!-- Leaderboard items rendered by JS -->
+                            <div class="ar-result-stat">
+                                <div class="ar-result-val" id="ar-result-dur">0:00</div>
+                                <div class="ar-result-lbl">Duration</div>
+                            </div>
+                            <div class="ar-result-stat">
+                                <div class="ar-result-val" id="ar-result-xp">+0</div>
+                                <div class="ar-result-lbl">XP</div>
                             </div>
                         </div>
+                        <button class="cta-button primary full-width" id="ar-post-btn">Post to Arena</button>
+                        <button class="ar-save-only-btn" id="ar-save-btn">Save only</button>
                     </div>
                 </div>
             </section>
+
+            <!-- Arena Create Post Modal -->
+            <div class="arena-post-modal hidden" id="arena-post-modal">
+                <div class="arena-post-card glass-card">
+                    <div class="apm-header">
+                        <div class="apm-title">New Post</div>
+                        <button class="apm-close" id="apm-close">
+                            <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+                                <path d="M6 6l12 12M18 6L6 18" stroke="var(--ios-label)" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="apm-exercise-row">
+                        <label class="apm-label">Exercise</label>
+                        <select class="apm-select" id="apm-exercise-select"></select>
+                    </div>
+                    <div class="apm-reps-row">
+                        <label class="apm-label">Reps (optional)</label>
+                        <input type="number" class="apm-input" id="apm-reps-input" placeholder="0" min="0" max="999">
+                    </div>
+                    <div class="apm-caption-row">
+                        <label class="apm-label">Caption</label>
+                        <textarea class="apm-textarea" id="apm-caption" placeholder="What did you do today?" rows="2"></textarea>
+                    </div>
+                    <button class="cta-button primary full-width" id="apm-submit-btn">Post</button>
+                </div>
+                <div class="arena-post-modal-bg" id="apm-bg"></div>
+            </div>
 
             <section id="skills" class="skills-section page">
                 <div class="ios-nav-bar">

@@ -69,6 +69,14 @@ const defaultState = {
         { rank: 3, name: 'CalisthenicsKing', xp: 13800 },
         { rank: 4, name: 'You', xp: 0 },
         { rank: 5, name: 'NewbieJoe', xp: 800 }
+    ],
+    arenaPosts: [
+        { id: 1, userId: 'sarah', username: 'SarahGains', exercise: 'Pull-ups', exerciseId: 'pull1',
+          reps: 15, verified: true, caption: 'New PR', createdAt: '2026-04-14T08:00:00Z', likes: 24, liked: false },
+        { id: 2, userId: 'mike', username: 'IronMike', exercise: 'Push-ups', exerciseId: 'push1',
+          reps: 30, verified: true, caption: '', createdAt: '2026-04-14T07:30:00Z', likes: 18, liked: false },
+        { id: 3, userId: 'king', username: 'CalisthenicsKing', exercise: 'Dips', exerciseId: 'push2',
+          reps: 20, verified: false, caption: 'Training session', createdAt: '2026-04-13T18:00:00Z', likes: 42, liked: false }
     ]
 };
 
@@ -94,6 +102,7 @@ export function loadUserState() {
             if (!state.data.myPrograms)       state.data.myPrograms = [];
             if (!state.data.exerciseHistory)  state.data.exerciseHistory = {};
             if (!state.data.personalRecords)  state.data.personalRecords = {};
+            if (!state.data.arenaPosts)       state.data.arenaPosts = defaultState.arenaPosts;
             if (state.data.userProfile && !state.data.userProfile.achievements) {
                 state.data.userProfile.achievements = defaultState.userProfile.achievements;
             }

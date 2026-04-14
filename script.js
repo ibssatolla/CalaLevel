@@ -255,41 +255,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const leaderboardList = document.getElementById('leaderboard-list');
 
         if (challengesList) {
-            challengesList.innerHTML = '';
-            state.data.challenges.forEach(challenge => {
-                const card = document.createElement('div');
-                card.classList.add('challenge-card');
-                const completed = challenge.status === 'Completed';
-                card.innerHTML = `
-                    <div class="challenge-info">
-                        <h4>${challenge.title}</h4>
-                        <div class="challenge-meta">
-                            <span>${challenge.type}</span>
-                            <span class="vs-badge">VS ${challenge.opponent}</span>
-                            <span class="challenge-target-badge">${challenge.target} reps</span>
+            challengesList.innerHTML = state.data.challenges.map(ch => {
+                const done = ch.status === 'Completed';
+                return `
+                <div class="arena-ch-card glass-card">
+                    <div class="acc-info">
+                        <div class="acc-title">${ch.title}</div>
+                        <div class="acc-meta">
+                            <span class="acc-type">${ch.type}</span>
+                            <span class="acc-vs">vs ${ch.opponent}</span>
+                            <span class="acc-target">${ch.target} reps</span>
                         </div>
                     </div>
-                    <div class="challenge-actions">
-                        ${completed
-                            ? `<span class="challenge-accepted">✓ Fullført</span>`
-                            : `<button class="cta-button small primary scan-challenge-btn"
-                                data-id="${challenge.id}">
-                                📷 Start
-                               </button>`
-                        }
-                    </div>
-                `;
-                challengesList.appendChild(card);
-            });
-
-            // Wire up scan buttons
-            challengesList.querySelectorAll('.scan-challenge-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const id = parseInt(btn.getAttribute('data-id'));
-                    const ch = state.data.challenges.find(c => c.id === id);
-                    if (ch) openScanner(ch);
-                });
-            });
+                    <button class="acc-start-btn ${done ? 'done' : ''}"
+                        ${done ? 'disabled' : `onclick="arenaStartChallenge(${ch.id})"`}>
+                        ${done ? 'Done' : 'Start'}
+                    </button>
+                </div>`;
+            }).join('');
         }
 
         if (leaderboardList) {
@@ -404,7 +387,460 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // ============================================================
+    //  ARENA SYSTEM
+    // ============================================================
+
+    // ---- Arena tab switching ----
+    function initArena() {
+        // Segmented control
+        document.querySelectorAll('.arena-seg').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.arena-seg').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const tab = btn.getAttribute('data-arena-tab');
+                document.querySelectorAll('.arena-tab').forEach(t => t.classList.remove('active'));
+                const el = document.getElementById(`arena-tab-${tab}`);
+                if (el) el.classList.add('active');
+                if (tab === 'feed') renderArenaFeed();
+            });
+        });
+
+        // FAB
+        const fab = document.getElementById('arena-fab');
+        const sheet = document.getElementById('arena-fab-sheet');
+        const backdrop = document.getElementById('arena-fab-backdrop');
+
+        fab?.addEventListener('click', () => {
+            const open = !sheet.classList.contains('hidden');
+            sheet.classList.toggle('hidden', open);
+            backdrop.classList.toggle('hidden', open);
+            fab.classList.toggle('active', !open);
+        });
+        backdrop?.addEventListener('click', closeArenaFAB);
+
+        document.getElementById('arena-opt-record')?.addEventListener('click', () => {
+            closeArenaFAB();
+            openArenaRecord(null);
+        });
+        document.getElementById('arena-opt-post')?.addEventListener('click', () => {
+            closeArenaFAB();
+            openArenaPostModal();
+        });
+
+        // Record screen buttons
+        document.getElementById('ar-close-btn')?.addEventListener('click', closeArenaRecord);
+        document.getElementById('ar-record-btn')?.addEventListener('click', toggleArenaRecord);
+        document.getElementById('ar-manual-rep')?.addEventListener('click', () => {
+            arRepCount++;
+            const el = document.getElementById('ar-rep-count');
+            if (el) el.textContent = arRepCount;
+        });
+        document.getElementById('ar-post-btn')?.addEventListener('click', arenaPostResult);
+        document.getElementById('ar-save-btn')?.addEventListener('click', arenaSaveResult);
+
+        // Exercise selector pills in record screen
+        document.querySelectorAll('.ar-ex-pill').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (arIsRecording) return; // locked during recording
+                document.querySelectorAll('.ar-ex-pill').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                arExerciseId = btn.getAttribute('data-ex');
+            });
+        });
+
+        // Post modal
+        const apmBg = document.getElementById('apm-bg');
+        apmBg?.addEventListener('click', closeArenaPostModal);
+        document.getElementById('apm-close')?.addEventListener('click', closeArenaPostModal);
+        document.getElementById('apm-submit-btn')?.addEventListener('click', submitArenaManualPost);
+
+        // Populate exercise select in post modal
+        const sel = document.getElementById('apm-exercise-select');
+        if (sel) {
+            exerciseLibrary.forEach(ex => {
+                const opt = document.createElement('option');
+                opt.value = ex.id;
+                opt.textContent = ex.name;
+                sel.appendChild(opt);
+            });
+        }
+
+        renderArenaFeed();
+    }
+
+    function closeArenaFAB() {
+        document.getElementById('arena-fab-sheet')?.classList.add('hidden');
+        document.getElementById('arena-fab-backdrop')?.classList.add('hidden');
+        document.getElementById('arena-fab')?.classList.remove('active');
+    }
+
+    // ---- Feed ----
+    function renderArenaFeed() {
+        const feed = document.getElementById('arena-feed');
+        if (!feed) return;
+
+        const posts = [...(state.data.arenaPosts || [])].reverse();
+        if (!posts.length) {
+            feed.innerHTML = `<div class="arena-empty">No posts yet. Be the first to record a workout.</div>`;
+            return;
+        }
+
+        feed.innerHTML = posts.map(post => {
+            const lib = exerciseLibrary.find(e => e.id === post.exerciseId);
+            const img = lib?.image || '';
+            const isMe = post.userId === 'user_me';
+            const time = formatArenaTime(post.createdAt);
+
+            return `
+            <div class="feed-card" data-post="${post.id}">
+                <div class="feed-media">
+                    ${post.videoUrl
+                        ? `<video src="${post.videoUrl}" autoplay loop muted playsinline class="feed-video"></video>`
+                        : `<img src="${img}" class="feed-img" alt="${post.exercise}" loading="lazy">`
+                    }
+                    ${post.verified ? '<div class="feed-verified-badge">Verified</div>' : ''}
+                    ${isMe ? '<div class="feed-mine-badge">You</div>' : ''}
+                </div>
+                <div class="feed-body">
+                    <div class="feed-row">
+                        <span class="feed-username">${post.username}</span>
+                        <span class="feed-time">${time}</span>
+                    </div>
+                    <div class="feed-detail-row">
+                        <span class="feed-exercise">${post.exercise}</span>
+                        ${post.reps ? `<span class="feed-reps">${post.reps} reps</span>` : ''}
+                    </div>
+                    ${post.caption ? `<div class="feed-caption">${post.caption}</div>` : ''}
+                </div>
+                <div class="feed-actions-row">
+                    <button class="feed-like-btn ${post.liked ? 'liked' : ''}"
+                        onclick="toggleArenaLike(${post.id})">
+                        <svg viewBox="0 0 24 24" fill="${post.liked ? 'var(--primary)' : 'none'}" stroke="${post.liked ? 'var(--primary)' : 'rgba(255,255,255,0.4)'}" width="17" height="17" stroke-width="2" stroke-linejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                        <span>${post.likes || 0}</span>
+                    </button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    window.toggleArenaLike = function (postId) {
+        const post = state.data.arenaPosts.find(p => p.id === postId);
+        if (!post) return;
+        post.liked = !post.liked;
+        post.likes = (post.likes || 0) + (post.liked ? 1 : -1);
+        saveState();
+        renderArenaFeed();
+    };
+
+    function formatArenaTime(iso) {
+        const d = new Date(iso);
+        const diff = (Date.now() - d.getTime()) / 1000;
+        if (diff < 60)   return 'Akkurat nå';
+        if (diff < 3600) return Math.floor(diff / 60) + 'm siden';
+        if (diff < 86400) return Math.floor(diff / 3600) + 't siden';
+        return Math.floor(diff / 86400) + 'd siden';
+    }
+
+    // ---- Challenge start ----
+    window.arenaStartChallenge = function (challengeId) {
+        const ch = state.data.challenges.find(c => c.id === challengeId);
+        if (!ch) return;
+        // Map challenge title to exercise id
+        const exMap = { 'push': 'push1', 'pull': 'pull1', 'chin': 'pull2', 'dip': 'push2' };
+        const key = Object.keys(exMap).find(k => ch.title.toLowerCase().includes(k));
+        const exId = key ? exMap[key] : 'push1';
+        arChallengeLock = { challengeId, exId, target: ch.target };
+        openArenaRecord(exId);
+    };
+
+    // ---- Camera / Record ----
+    let arStream = null;
+    let arRecorder = null;
+    let arChunks = [];
+    let arStartTime = null;
+    let arTimerInterval = null;
+    let arRepCount = 0;
+    let arIsRecording = false;
+    let arExerciseId = 'push1';
+    let arResultBlob = null;
+    let arResultDuration = 0;
+    let arChallengeLock = null;
+
+    async function openArenaRecord(lockedExId) {
+        arRepCount = 0;
+        arIsRecording = false;
+        arResultBlob = null;
+        arChallengeLock = arChallengeLock; // preserve if set by challenge start
+
+        // Reset UI
+        const countEl = document.getElementById('ar-rep-count');
+        const timerEl = document.getElementById('ar-timer');
+        const resultOverlay = document.getElementById('ar-result-overlay');
+        const recordInner = document.getElementById('ar-record-inner');
+        const manualBtn = document.getElementById('ar-manual-rep');
+        if (countEl) countEl.textContent = '0';
+        if (timerEl) timerEl.textContent = '0:00';
+        if (resultOverlay) resultOverlay.classList.add('hidden');
+        if (recordInner) recordInner.classList.remove('recording');
+        if (manualBtn) manualBtn.classList.add('hidden');
+
+        // Set exercise
+        if (lockedExId) {
+            arExerciseId = lockedExId;
+            document.querySelectorAll('.ar-ex-pill').forEach(b => {
+                b.classList.toggle('active', b.getAttribute('data-ex') === lockedExId);
+                if (arChallengeLock) b.disabled = true; // lock during challenge
+            });
+        } else {
+            document.querySelectorAll('.ar-ex-pill').forEach(b => { b.disabled = false; });
+            const firstPill = document.querySelector('.ar-ex-pill.active');
+            arExerciseId = firstPill?.getAttribute('data-ex') || 'push1';
+        }
+
+        // Request camera
+        try {
+            arStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+                audio: false
+            });
+            const preview = document.getElementById('ar-preview');
+            if (preview) {
+                preview.srcObject = arStream;
+                await preview.play().catch(() => {});
+            }
+            showPage('arena-record');
+        } catch (err) {
+            arChallengeLock = null;
+            if (err.name === 'NotAllowedError') {
+                showToast('Kamera blokkert', 'Gi kameratilgang i nettleserinnstillingene.');
+            } else {
+                showToast('Kamera utilgjengelig', 'Kunne ikke starte kameraet.');
+            }
+        }
+    }
+
+    function toggleArenaRecord() {
+        if (!arIsRecording) {
+            startArenaRecording();
+        } else {
+            stopArenaRecording();
+        }
+    }
+
+    function startArenaRecording() {
+        if (!arStream) return;
+        arChunks = [];
+        arRepCount = 0;
+        const countEl = document.getElementById('ar-rep-count');
+        if (countEl) countEl.textContent = '0';
+
+        try {
+            const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+                ? 'video/webm;codecs=vp9'
+                : MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : '';
+            const opts = mimeType ? { mimeType } : {};
+            arRecorder = new MediaRecorder(arStream, opts);
+        } catch (_) {
+            arRecorder = new MediaRecorder(arStream);
+        }
+
+        arRecorder.ondataavailable = e => { if (e.data.size > 0) arChunks.push(e.data); };
+        arRecorder.onstop = () => {
+            const type = arRecorder.mimeType || 'video/webm';
+            arResultBlob = new Blob(arChunks, { type });
+            showArenaResult();
+        };
+        arRecorder.start(200);
+
+        arIsRecording = true;
+        arStartTime = Date.now();
+        arResultDuration = 0;
+
+        // UI: recording state
+        document.getElementById('ar-record-inner')?.classList.add('recording');
+        document.getElementById('ar-manual-rep')?.classList.remove('hidden');
+        // Lock exercise selector
+        document.querySelectorAll('.ar-ex-pill').forEach(b => b.disabled = true);
+
+        arTimerInterval = setInterval(() => {
+            const secs = Math.floor((Date.now() - arStartTime) / 1000);
+            const m = Math.floor(secs / 60).toString();
+            const s = (secs % 60).toString().padStart(2, '0');
+            const el = document.getElementById('ar-timer');
+            if (el) el.textContent = `${m}:${s}`;
+            arResultDuration = secs;
+        }, 500);
+    }
+
+    function stopArenaRecording() {
+        clearInterval(arTimerInterval);
+        arIsRecording = false;
+        document.getElementById('ar-record-inner')?.classList.remove('recording');
+        document.getElementById('ar-manual-rep')?.classList.add('hidden');
+        document.querySelectorAll('.ar-ex-pill').forEach(b => {
+            if (!arChallengeLock) b.disabled = false;
+        });
+        if (arRecorder && arRecorder.state !== 'inactive') {
+            arRecorder.stop();
+        } else {
+            showArenaResult();
+        }
+    }
+
+    function showArenaResult() {
+        const xp = 10 + arRepCount * 2;
+        const m = Math.floor(arResultDuration / 60).toString();
+        const s = (arResultDuration % 60).toString().padStart(2, '0');
+
+        const repsEl = document.getElementById('ar-result-reps');
+        const durEl  = document.getElementById('ar-result-dur');
+        const xpEl   = document.getElementById('ar-result-xp');
+        if (repsEl) repsEl.textContent = arRepCount;
+        if (durEl)  durEl.textContent  = `${m}:${s}`;
+        if (xpEl)   xpEl.textContent   = `+${xp}`;
+
+        document.getElementById('ar-result-overlay')?.classList.remove('hidden');
+    }
+
+    function arenaPostResult() {
+        const lib = exerciseLibrary.find(e => e.id === arExerciseId);
+        const xp = 10 + arRepCount * 2 + 5; // +5 posting bonus
+        const videoUrl = arResultBlob ? URL.createObjectURL(arResultBlob) : null;
+
+        const newPost = {
+            id: Date.now(),
+            userId: 'user_me',
+            username: state.data.userProfile.name || 'You',
+            exercise: lib?.name || 'Exercise',
+            exerciseId: arExerciseId,
+            reps: arRepCount,
+            verified: true,
+            caption: '',
+            createdAt: new Date().toISOString(),
+            likes: 0,
+            liked: false,
+            videoUrl,
+        };
+        state.data.arenaPosts.push(newPost);
+
+        // Award XP
+        state.data.userProfile.xp += xp;
+        state.data.userProfile.stats.workouts += 1;
+        state.data.userProfile.stats.reps += arRepCount;
+
+        // Handle challenge completion
+        if (arChallengeLock) {
+            const ch = state.data.challenges.find(c => c.id === arChallengeLock.challengeId);
+            if (ch) {
+                ch.status = 'Completed';
+                state.data.userProfile.xp += 50; // challenge win bonus
+                showToast('Challenge vunnet!', `+${xp + 50} XP totalt`);
+            }
+            arChallengeLock = null;
+        } else {
+            showToast('Postet!', `+${xp} XP`);
+        }
+
+        checkLevelUp();
+        saveState();
+        renderProfile();
+        renderBattles();
+
+        closeArenaRecord();
+        // Switch to feed tab to show the new post
+        document.querySelectorAll('.arena-seg').forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-arena-tab="feed"]')?.classList.add('active');
+        document.querySelectorAll('.arena-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('arena-tab-feed')?.classList.add('active');
+        renderArenaFeed();
+        showPage('community');
+    }
+
+    function arenaSaveResult() {
+        const xp = 10 + arRepCount * 2;
+        state.data.userProfile.xp += xp;
+        state.data.userProfile.stats.workouts += 1;
+        state.data.userProfile.stats.reps += arRepCount;
+        checkLevelUp();
+        saveState();
+        renderProfile();
+        arChallengeLock = null;
+        closeArenaRecord();
+        showToast('Lagret', `+${xp} XP`);
+        showPage('community');
+    }
+
+    function closeArenaRecord() {
+        clearInterval(arTimerInterval);
+        if (arRecorder && arRecorder.state !== 'inactive') {
+            arRecorder.stop();
+        }
+        if (arStream) {
+            arStream.getTracks().forEach(t => t.stop());
+            arStream = null;
+        }
+        const preview = document.getElementById('ar-preview');
+        if (preview) preview.srcObject = null;
+        document.getElementById('ar-result-overlay')?.classList.add('hidden');
+        arIsRecording = false;
+        arChallengeLock = null;
+    }
+
+    // ---- Manual post modal ----
+    function openArenaPostModal() {
+        document.getElementById('arena-post-modal')?.classList.remove('hidden');
+        const repsInput = document.getElementById('apm-reps-input');
+        const caption  = document.getElementById('apm-caption');
+        if (repsInput) repsInput.value = '';
+        if (caption)   caption.value = '';
+    }
+
+    function closeArenaPostModal() {
+        document.getElementById('arena-post-modal')?.classList.add('hidden');
+    }
+
+    function submitArenaManualPost() {
+        const exId   = document.getElementById('apm-exercise-select')?.value;
+        const reps   = parseInt(document.getElementById('apm-reps-input')?.value) || 0;
+        const caption = document.getElementById('apm-caption')?.value?.trim() || '';
+        const lib    = exerciseLibrary.find(e => e.id === exId);
+
+        const newPost = {
+            id: Date.now(),
+            userId: 'user_me',
+            username: state.data.userProfile.name || 'You',
+            exercise: lib?.name || 'Exercise',
+            exerciseId: exId,
+            reps: reps || null,
+            verified: false,
+            caption,
+            createdAt: new Date().toISOString(),
+            likes: 0,
+            liked: false,
+            videoUrl: null,
+        };
+        state.data.arenaPosts.push(newPost);
+        state.data.userProfile.xp += 5;
+        checkLevelUp();
+        saveState();
+        renderProfile();
+        closeArenaPostModal();
+
+        document.querySelectorAll('.arena-seg').forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-arena-tab="feed"]')?.classList.add('active');
+        document.querySelectorAll('.arena-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('arena-tab-feed')?.classList.add('active');
+        renderArenaFeed();
+        showToast('Postet!', '+5 XP');
+    }
+
+    // ============================================================
+
     renderBattles();
+    initArena();
 
     // User Profile Implementation
     // Using state.data.userProfile which is loaded or default
