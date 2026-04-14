@@ -412,10 +412,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const backdrop = document.getElementById('arena-fab-backdrop');
 
         fab?.addEventListener('click', () => {
-            const open = !sheet.classList.contains('hidden');
-            sheet.classList.toggle('hidden', open);
-            backdrop.classList.toggle('hidden', open);
-            fab.classList.toggle('active', !open);
+            const isOpen = sheet.classList.contains('visible');
+            if (isOpen) {
+                closeArenaFAB();
+            } else {
+                sheet.classList.remove('hidden');
+                sheet.classList.add('visible');
+                backdrop.classList.add('visible');
+                fab.classList.add('active');
+            }
         });
         backdrop?.addEventListener('click', closeArenaFAB);
 
@@ -487,8 +492,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function closeArenaFAB() {
-        document.getElementById('arena-fab-sheet')?.classList.add('hidden');
-        document.getElementById('arena-fab-backdrop')?.classList.add('hidden');
+        document.getElementById('arena-fab-sheet')?.classList.remove('visible');
+        document.getElementById('arena-fab-backdrop')?.classList.remove('visible');
         document.getElementById('arena-fab')?.classList.remove('active');
     }
 
