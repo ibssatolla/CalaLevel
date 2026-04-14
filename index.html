@@ -20,25 +20,12 @@
 </head>
 
 <body>
-    <div class="app-container">
-        <header class="glass-header">
-            <nav>
-                <div class="logo" data-page="home">Cala<span class="highlight">Level</span></div>
-                <ul class="nav-links">
-                    <li><a href="#" class="nav-link active" data-page="home">Home</a></li>
-                    <li><a href="#" class="nav-link" data-page="skills">Skills</a></li>
-                    <li><a href="#" class="nav-link" data-page="train">Trening</a></li>
-                    <li><a href="#" class="nav-link" data-page="progress">Fremgang</a></li>
-                    <li><a href="#" class="nav-link" data-page="community">Community</a></li>
-                    <li><a href="#" class="nav-link" data-page="map">Map</a></li>
-                    <li><a href="#" class="nav-link" data-page="profile">Profile</a></li>
-                </ul>
-                <button class="cta-button small" data-page="train">Get Started</button>
-            </nav>
-        </header>
-
-        <main>
+    <div class="ios-app">
+        <main class="ios-main">
             <section id="home" class="page active">
+                <div class="ios-nav-bar">
+                    <h1 class="ios-large-title">Cala<span class="ios-title-accent">Level</span></h1>
+                </div>
                 <div class="hero">
                     <div class="hero-content">
                         <div class="level-badge">
@@ -129,7 +116,9 @@
 
 
             <section id="community" class="battles-section page">
-                <h2>Battle Arena</h2>
+                <div class="ios-nav-bar">
+                    <h1 class="ios-large-title">Arenaen</h1>
+                </div>
                 <p class="section-subtitle">Compete with friends and rivals.</p>
 
                 <div class="battles-container">
@@ -159,6 +148,10 @@
             </section>
 
             <section id="skills" class="skills-section page">
+                <div class="ios-nav-bar">
+                    <button class="ios-back-btn" data-page="home">‹ Hjem</button>
+                    <h1 class="ios-large-title">Skills</h1>
+                </div>
                 <h2>Skill Tree</h2>
                 <p class="section-subtitle">Unlock new moves and master your body.</p>
                 <div class="skill-tree-wrapper">
@@ -169,6 +162,10 @@
             </section>
 
             <section id="map" class="map-section page">
+                <div class="ios-nav-bar">
+                    <button class="ios-back-btn" data-page="home">‹ Hjem</button>
+                    <h1 class="ios-large-title">Kart</h1>
+                </div>
                 <h2>Park Map</h2>
                 <p class="section-subtitle">Discover local training spots.</p>
                 <div class="map-wrapper">
@@ -216,6 +213,9 @@
 
             <!-- Combined Train Section -->
             <section id="train" class="page">
+                <div class="ios-nav-bar">
+                    <h1 class="ios-large-title">Trening</h1>
+                </div>
                 <!-- Top-level tabs: Treningsøkt / Program -->
                 <div class="train-tabs">
                     <button class="train-tab active" data-train-tab="session">Treningsøkt</button>
@@ -366,6 +366,9 @@
 
             <!-- User Profile Section -->
             <section id="profile" class="profile-section page">
+                <div class="ios-nav-bar">
+                    <h1 class="ios-large-title">Profil</h1>
+                </div>
                 <h2>User Profile</h2>
                 <div class="profile-container">
                     <!-- Header: Avatar, Level, XP -->
@@ -443,6 +446,9 @@
             </section>
             <!-- Progress Section -->
             <section id="progress" class="page progress-page">
+                <div class="ios-nav-bar">
+                    <h1 class="ios-large-title">Fremgang</h1>
+                </div>
                 <h2>Fremgang</h2>
                 <p class="section-subtitle">Rekorder, fremgang og historikk per øvelse.</p>
                 <div id="progress-content">
@@ -450,6 +456,46 @@
                 </div>
             </section>
         </main>
+
+        <!-- iOS Bottom Tab Bar -->
+        <nav class="ios-tab-bar">
+            <button class="ios-tab active" data-page="home">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                <span>Hjem</span>
+            </button>
+            <button class="ios-tab" data-page="train">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
+                    <line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+                </svg>
+                <span>Trening</span>
+            </button>
+            <button class="ios-tab" data-page="progress">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>
+                </svg>
+                <span>Fremgang</span>
+            </button>
+            <button class="ios-tab" data-page="community">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span>Arenaen</span>
+            </button>
+            <button class="ios-tab" data-page="profile">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span>Profil</span>
+            </button>
+        </nav>
     </div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>

@@ -13,8 +13,8 @@ function showPage(pageId) {
     const target = document.getElementById(pageId);
     if (target) target.classList.add('active');
 
-    document.querySelectorAll('.nav-link').forEach(a => {
-        a.classList.toggle('active', a.getAttribute('data-page') === pageId);
+    document.querySelectorAll('.ios-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-page') === pageId);
     });
 
     if (pageId === 'map') setTimeout(invalidateMapSize, 150);
