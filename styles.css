@@ -5365,3 +5365,235 @@ spline-viewer {
     padding: 11px 24px;
     cursor: pointer;
 }
+
+/* FAB Cancel option */
+.arena-fab-cancel {
+    border-top: 1px solid var(--ios-separator);
+    color: var(--ios-label2);
+    font-size: 0.88rem;
+    font-weight: 500;
+    justify-content: center;
+}
+
+/* ============================================================
+   MEDIA CAPTURE SCREEN
+   ============================================================ */
+
+.mc-page.active {
+    display: flex;
+    flex-direction: column;
+    background: #000;
+    position: relative;
+    overflow: hidden;
+}
+
+.mc-video-preview {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
+.mc-top-bar {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 52px 16px 16px;
+    flex-shrink: 0;
+}
+
+.mc-close-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.55);
+    border: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    flex-shrink: 0;
+}
+
+.mc-mode-toggle {
+    display: flex;
+    background: rgba(0,0,0,0.45);
+    border-radius: 20px;
+    padding: 3px;
+    gap: 2px;
+    backdrop-filter: blur(8px);
+}
+
+.mc-mode-btn {
+    padding: 6px 18px;
+    border-radius: 16px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.65);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.mc-mode-btn.active {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+}
+
+.mc-top-spacer {
+    width: 38px;
+    flex-shrink: 0;
+}
+
+.mc-rec-indicator {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    align-self: center;
+    background: rgba(0,0,0,0.55);
+    padding: 5px 12px;
+    border-radius: 20px;
+    backdrop-filter: blur(6px);
+    flex-shrink: 0;
+}
+
+.mc-rec-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ff3b30;
+    animation: mc-blink 1s ease-in-out infinite;
+}
+
+@keyframes mc-blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+}
+
+#mc-rec-timer {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.mc-controls {
+    position: relative;
+    z-index: 1;
+    margin-top: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px 0 48px;
+    flex-shrink: 0;
+}
+
+/* Capture button — photo mode: white circle */
+.mc-capture-btn {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    border: 4px solid rgba(255,255,255,0.85);
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.mc-capture-inner {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: #fff;
+    transition: border-radius 0.25s, width 0.25s, height 0.25s, background 0.25s;
+}
+
+/* While recording video: inner becomes red square (stop icon) */
+.mc-capture-inner.mc-recording {
+    background: #ff3b30;
+    border-radius: 10px;
+    width: 32px;
+    height: 32px;
+}
+
+/* ============================================================
+   MEDIA PREVIEW SCREEN
+   ============================================================ */
+
+.mp-page.active {
+    display: flex;
+    flex-direction: column;
+    background: #000;
+}
+
+.mp-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 52px 16px 14px;
+    background: #000;
+    flex-shrink: 0;
+}
+
+.mp-retake-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 0;
+}
+
+.mp-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.mp-post-btn {
+    font-size: 0.88rem;
+    padding: 8px 20px;
+    border-radius: 22px;
+}
+
+.mp-media-wrap {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    overflow: hidden;
+}
+
+.mp-media {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.mp-media.hidden {
+    display: none;
+}
+
+.mp-caption-wrap {
+    background: var(--ios-bg);
+    padding: 14px 16px calc(env(safe-area-inset-bottom) + 16px);
+    flex-shrink: 0;
+}
+
+.mp-caption-input {
+    margin-bottom: 0;
+}

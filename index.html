@@ -156,11 +156,20 @@
 
                 <!-- FAB action sheet -->
                 <div class="arena-fab-sheet hidden" id="arena-fab-sheet">
+                    <button class="arena-fab-option" id="arena-opt-camera">
+                        <span class="afo-icon">
+                            <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="var(--primary)" stroke-width="1.5" stroke-linejoin="round"/>
+                                <circle cx="12" cy="13" r="4" stroke="var(--primary)" stroke-width="1.5"/>
+                            </svg>
+                        </span>
+                        <span>Camera</span>
+                    </button>
                     <button class="arena-fab-option" id="arena-opt-text">
                         <span class="afo-icon afo-text-icon">T</span>
-                        <span>Text</span>
+                        <span>Text Post</span>
                     </button>
-                    <button class="arena-fab-option" id="arena-opt-image">
+                    <button class="arena-fab-option" id="arena-opt-gallery">
                         <span class="afo-icon">
                             <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
                                 <rect x="3" y="3" width="18" height="18" rx="3" stroke="var(--primary)" stroke-width="1.5"/>
@@ -168,27 +177,14 @@
                                 <path d="M3 15l5-5 4 4 3-3 6 6" stroke="var(--primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </span>
-                        <span>Image</span>
+                        <span>Upload from Gallery</span>
                     </button>
-                    <button class="arena-fab-option" id="arena-opt-video-upload">
-                        <span class="afo-icon">
-                            <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
-                                <rect x="2" y="5" width="14" height="14" rx="2" stroke="var(--primary)" stroke-width="1.5"/>
-                                <path d="M16 9l6-4v14l-6-4V9z" stroke="var(--primary)" stroke-width="1.5" stroke-linejoin="round"/>
-                            </svg>
-                        </span>
-                        <span>Video</span>
-                    </button>
-                    <button class="arena-fab-option" id="arena-opt-record">
-                        <span class="afo-icon">
-                            <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
-                                <circle cx="12" cy="12" r="5" fill="var(--primary)"/>
-                                <circle cx="12" cy="12" r="10" stroke="var(--primary)" stroke-width="1.5" opacity="0.4"/>
-                            </svg>
-                        </span>
-                        <span>Record</span>
+                    <button class="arena-fab-option arena-fab-cancel" id="arena-opt-cancel">
+                        <span>Cancel</span>
                     </button>
                 </div>
+                <!-- Hidden gallery file input -->
+                <input type="file" class="hidden" id="gallery-file-input" accept="image/*,video/*">
                 <div class="arena-fab-backdrop hidden" id="arena-fab-backdrop"></div>
             </section>
 
@@ -688,6 +684,57 @@
                     <!-- Rendered by progression.js -->
                 </div>
             </section>
+            <!-- Media Capture Screen (Camera) -->
+            <section id="media-capture" class="page mc-page">
+                <video id="mc-preview" class="mc-video-preview" autoplay muted playsinline></video>
+
+                <!-- Top bar -->
+                <div class="mc-top-bar">
+                    <button class="mc-close-btn" id="mc-close-btn">
+                        <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+                            <path d="M6 6l12 12M18 6L6 18" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <div class="mc-mode-toggle">
+                        <button class="mc-mode-btn active" data-mc-mode="photo" id="mc-mode-photo">Photo</button>
+                        <button class="mc-mode-btn" data-mc-mode="video" id="mc-mode-video">Video</button>
+                    </div>
+                    <div class="mc-top-spacer"></div>
+                </div>
+
+                <!-- Recording indicator -->
+                <div class="mc-rec-indicator hidden" id="mc-rec-indicator">
+                    <span class="mc-rec-dot"></span>
+                    <span id="mc-rec-timer">0:00</span>
+                </div>
+
+                <!-- Capture button area -->
+                <div class="mc-controls">
+                    <button class="mc-capture-btn" id="mc-capture-btn">
+                        <div class="mc-capture-inner" id="mc-capture-inner"></div>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Media Preview Screen -->
+            <section id="media-preview" class="page mp-page">
+                <div class="mp-top-bar">
+                    <button class="mp-retake-btn" id="mp-retake-btn">Retake</button>
+                    <span class="mp-title">Preview</span>
+                    <button class="cta-button primary mp-post-btn" id="mp-post-btn">Post</button>
+                </div>
+
+                <div class="mp-media-wrap">
+                    <img id="mp-image" class="mp-media hidden" alt="preview">
+                    <video id="mp-video" class="mp-media hidden" controls playsinline></video>
+                </div>
+
+                <div class="mp-caption-wrap">
+                    <textarea class="apm-textarea mp-caption-input" id="mp-caption"
+                              placeholder="Add a caption..." rows="2"></textarea>
+                </div>
+            </section>
+
         </main>
 
         <!-- iOS Bottom Tab Bar -->

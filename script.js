@@ -424,18 +424,46 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         backdrop?.addEventListener('click', closeArenaFAB);
 
+        document.getElementById('arena-opt-camera')?.addEventListener('click', () => {
+            closeArenaFAB(); openMediaCapture();
+        });
         document.getElementById('arena-opt-text')?.addEventListener('click', () => {
             closeArenaFAB(); openCreatePost('text');
         });
-        document.getElementById('arena-opt-image')?.addEventListener('click', () => {
-            closeArenaFAB(); openCreatePost('image');
+        document.getElementById('arena-opt-gallery')?.addEventListener('click', () => {
+            closeArenaFAB();
+            document.getElementById('gallery-file-input')?.click();
         });
-        document.getElementById('arena-opt-video-upload')?.addEventListener('click', () => {
-            closeArenaFAB(); openCreatePost('video');
+        document.getElementById('arena-opt-cancel')?.addEventListener('click', () => {
+            closeArenaFAB();
         });
-        document.getElementById('arena-opt-record')?.addEventListener('click', () => {
-            closeArenaFAB(); openArenaRecord(null);
+
+        // Gallery file input
+        document.getElementById('gallery-file-input')?.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            e.target.value = '';
+            const url = URL.createObjectURL(file);
+            const type = file.type.startsWith('image/') ? 'image' : 'video';
+            openMediaPreview(url, type, false);
         });
+
+        // Media capture screen
+        document.getElementById('mc-close-btn')?.addEventListener('click', closeMediaCapture);
+        document.getElementById('mc-capture-btn')?.addEventListener('click', handleCapturePress);
+        document.querySelectorAll('.mc-mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (mcIsRecording) return;
+                document.querySelectorAll('.mc-mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                mcMode = btn.getAttribute('data-mc-mode');
+                updateCaptureUI();
+            });
+        });
+
+        // Media preview screen
+        document.getElementById('mp-retake-btn')?.addEventListener('click', retakeMedia);
+        document.getElementById('mp-post-btn')?.addEventListener('click', postCapturedMedia);
 
         // Record screen buttons
         document.getElementById('ar-close-btn')?.addEventListener('click', closeArenaRecord);
@@ -995,6 +1023,208 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.arena-tab').forEach(t => t.classList.remove('active'));
         document.getElementById('arena-tab-feed')?.classList.add('active');
         renderArenaFeed();
+        showToast('Postet!', '+5 XP');
+    }
+
+    // ============================================================
+    // MEDIA CAPTURE (Camera + Gallery → Preview → Post)
+    // ============================================================
+
+    let mcStream       = null;
+    let mcMode         = 'photo';   // 'photo' | 'video'
+    let mcRecorder     = null;
+    let mcChunks       = [];
+    let mcIsRecording  = false;
+    let mcTimerInterval = null;
+    let mcTimerSecs    = 0;
+    let mcCapturedUrl  = null;
+    let mcCapturedType = null;  // 'image' | 'video'
+    let mcFromCamera   = false; // true = we own the objectURL, revoke on retake
+
+    async function openMediaCapture() {
+        try {
+            mcStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        } catch (err) {
+            showToast('Kamera ikke tilgjengelig', '');
+            return;
+        }
+        const preview = document.getElementById('mc-preview');
+        if (preview) preview.srcObject = mcStream;
+
+        mcMode = 'photo';
+        mcIsRecording = false;
+        document.querySelectorAll('.mc-mode-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('mc-mode-photo')?.classList.add('active');
+        document.getElementById('mc-rec-indicator')?.classList.add('hidden');
+        updateCaptureUI();
+        showPage('media-capture');
+    }
+
+    function updateCaptureUI() {
+        const inner = document.getElementById('mc-capture-inner');
+        if (!inner) return;
+        if (mcMode === 'video' && mcIsRecording) {
+            inner.classList.add('mc-recording');
+        } else {
+            inner.classList.remove('mc-recording');
+        }
+    }
+
+    function handleCapturePress() {
+        if (mcMode === 'photo') {
+            capturePhoto();
+        } else {
+            if (mcIsRecording) {
+                stopVideoCapture();
+            } else {
+                startVideoCapture();
+            }
+        }
+    }
+
+    function capturePhoto() {
+        const video = document.getElementById('mc-preview');
+        if (!video) return;
+        const canvas = document.createElement('canvas');
+        canvas.width  = video.videoWidth  || 640;
+        canvas.height = video.videoHeight || 480;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        canvas.toBlob(blob => {
+            stopStream();
+            const url = URL.createObjectURL(blob);
+            openMediaPreview(url, 'image', true);
+        }, 'image/jpeg', 0.92);
+    }
+
+    function startVideoCapture() {
+        mcChunks = [];
+        const mimeType = ['video/webm;codecs=vp9', 'video/webm', ''].find(m =>
+            m === '' || MediaRecorder.isTypeSupported(m)
+        );
+        const opts = mimeType ? { mimeType } : {};
+        try { mcRecorder = new MediaRecorder(mcStream, opts); }
+        catch (e) { mcRecorder = new MediaRecorder(mcStream); }
+
+        mcRecorder.ondataavailable = e => { if (e.data.size > 0) mcChunks.push(e.data); };
+        mcRecorder.onstop = () => {
+            const blob = new Blob(mcChunks, { type: 'video/webm' });
+            stopStream();
+            const url = URL.createObjectURL(blob);
+            openMediaPreview(url, 'video', true);
+        };
+        mcRecorder.start();
+        mcIsRecording = true;
+        mcTimerSecs = 0;
+        document.getElementById('mc-rec-indicator')?.classList.remove('hidden');
+        mcTimerInterval = setInterval(() => {
+            mcTimerSecs++;
+            const m = Math.floor(mcTimerSecs / 60);
+            const s = String(mcTimerSecs % 60).padStart(2, '0');
+            const el = document.getElementById('mc-rec-timer');
+            if (el) el.textContent = `${m}:${s}`;
+        }, 1000);
+        updateCaptureUI();
+    }
+
+    function stopVideoCapture() {
+        clearInterval(mcTimerInterval);
+        mcIsRecording = false;
+        if (mcRecorder && mcRecorder.state !== 'inactive') mcRecorder.stop();
+        document.getElementById('mc-rec-indicator')?.classList.add('hidden');
+        updateCaptureUI();
+    }
+
+    function stopStream() {
+        if (mcStream) {
+            mcStream.getTracks().forEach(t => t.stop());
+            mcStream = null;
+        }
+        const preview = document.getElementById('mc-preview');
+        if (preview) preview.srcObject = null;
+    }
+
+    function closeMediaCapture() {
+        clearInterval(mcTimerInterval);
+        if (mcRecorder && mcRecorder.state !== 'inactive') mcRecorder.stop();
+        stopStream();
+        mcIsRecording = false;
+        showPage('community');
+    }
+
+    // ---- Media Preview ----
+
+    function openMediaPreview(url, type, fromCamera) {
+        // Clean up previous preview URL if we own it
+        if (mcCapturedUrl && mcFromCamera) URL.revokeObjectURL(mcCapturedUrl);
+        mcCapturedUrl  = url;
+        mcCapturedType = type;
+        mcFromCamera   = fromCamera;
+
+        const imgEl = document.getElementById('mp-image');
+        const vidEl = document.getElementById('mp-video');
+        const cap   = document.getElementById('mp-caption');
+
+        if (cap) cap.value = '';
+        imgEl?.classList.add('hidden');
+        vidEl?.classList.add('hidden');
+
+        if (type === 'image') {
+            if (imgEl) { imgEl.src = url; imgEl.classList.remove('hidden'); }
+        } else {
+            if (vidEl) { vidEl.src = url; vidEl.classList.remove('hidden'); }
+        }
+
+        showPage('media-preview');
+    }
+
+    function retakeMedia() {
+        // Go back to camera if came from camera, else back to feed/gallery
+        if (mcFromCamera) {
+            if (mcCapturedUrl) { URL.revokeObjectURL(mcCapturedUrl); mcCapturedUrl = null; }
+            openMediaCapture();
+        } else {
+            if (mcCapturedUrl) { URL.revokeObjectURL(mcCapturedUrl); mcCapturedUrl = null; }
+            showPage('community');
+        }
+    }
+
+    function postCapturedMedia() {
+        if (!mcCapturedUrl || !mcCapturedType) return;
+        const caption = document.getElementById('mp-caption')?.value?.trim() || '';
+
+        const newPost = {
+            id:         Date.now(),
+            userId:     'user_me',
+            username:   state.data.userProfile.name || 'You',
+            type:       mcCapturedType,
+            content:    mcCapturedUrl,
+            caption,
+            exercise:   null,
+            exerciseId: null,
+            reps:       null,
+            verified:   false,
+            createdAt:  new Date().toISOString(),
+            likes:      0,
+            liked:      false,
+        };
+
+        // Transfer ownership — do NOT revoke the URL
+        mcCapturedUrl  = null;
+        mcCapturedType = null;
+
+        state.data.arenaPosts.push(newPost);
+        state.data.userProfile.xp += 5;
+        checkLevelUp();
+        saveState();
+        renderProfile();
+
+        // Switch to feed
+        document.querySelectorAll('.arena-seg').forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-arena-tab="feed"]')?.classList.add('active');
+        document.querySelectorAll('.arena-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('arena-tab-feed')?.classList.add('active');
+        renderArenaFeed();
+        showPage('community');
         showToast('Postet!', '+5 XP');
     }
 
