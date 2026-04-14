@@ -3964,132 +3964,22 @@ spline-viewer {
     gap: 12px;
 }
 
-/* ---- Media area ---- */
+/* ---- Media area — GIF demo ---- */
 .ex-detail-media {
     position: relative;
     width: 100%;
-    height: 220px;
+    height: 260px;
     border-radius: 18px;
     overflow: hidden;
     background: var(--ios-bg3);
     margin-top: 12px;
 }
 
-.ex-detail-placeholder {
+.ex-detail-gif {
     width: 100%;
     height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-}
-
-.ex-detail-thumb-bg {
-    width: 90px;
-    height: 90px;
-    border-radius: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-}
-
-.ex-detail-thumb-emoji {
-    font-size: 2.8rem;
-    line-height: 1;
-}
-
-.ex-play-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 24px;
-    color: #fff;
-    font-family: var(--font-main);
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 10px 20px;
-    cursor: pointer;
-    backdrop-filter: blur(8px);
-    transition: all 0.15s;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.ex-play-btn:active {
-    transform: scale(0.95);
-    background: rgba(255,255,255,0.2);
-}
-
-.ex-detail-loading {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    color: var(--ios-label2);
-    font-size: 0.9rem;
-}
-
-.ex-video-spinner {
-    width: 36px;
-    height: 36px;
-    border: 3px solid rgba(255,255,255,0.1);
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-.ex-detail-iframe-wrap {
-    width: 100%;
-    height: 100%;
-}
-
-.ex-iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
+    object-fit: cover;
     display: block;
-}
-
-/* ---- AI bar ---- */
-.ex-ai-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 14px;
-    gap: 12px;
-}
-
-.ex-ai-bar-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
-    min-width: 0;
-}
-
-.ex-ai-icon {
-    font-size: 1.4rem;
-    flex-shrink: 0;
-}
-
-.ex-ai-label {
-    font-size: 0.88rem;
-    font-weight: 700;
-    color: var(--ios-label);
-}
-
-.ex-ai-sub {
-    font-size: 0.72rem;
-    color: var(--ios-label2);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 /* ---- Info card ---- */
@@ -4192,16 +4082,21 @@ spline-viewer {
 }
 
 .lib-ex-thumb {
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
     border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
+    overflow: hidden;
     flex-shrink: 0;
     cursor: pointer;
     transition: transform 0.15s;
+    background: var(--ios-bg3);
+}
+
+.lib-ex-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .lib-ex-thumb:active { transform: scale(0.92); }
@@ -4267,17 +4162,22 @@ spline-viewer {
 
 /* ---- Session exercise thumbnail ---- */
 .ex-session-thumb {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
+    overflow: hidden;
     flex-shrink: 0;
     cursor: pointer;
     transition: transform 0.15s;
     margin-right: 4px;
+    background: var(--ios-bg3);
+}
+
+.ex-session-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .ex-session-thumb:active { transform: scale(0.9); }
