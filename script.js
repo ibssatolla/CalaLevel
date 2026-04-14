@@ -428,15 +428,13 @@ document.addEventListener('DOMContentLoaded', () => {
             closeArenaFAB(); openMediaCapture();
         });
         document.getElementById('arena-opt-text')?.addEventListener('click', () => {
-            closeArenaFAB(); openCreatePost('text');
+            closeArenaFAB(); openTextPost();
         });
         document.getElementById('arena-opt-gallery')?.addEventListener('click', () => {
             closeArenaFAB();
             document.getElementById('gallery-file-input')?.click();
         });
-        document.getElementById('arena-opt-cancel')?.addEventListener('click', () => {
-            closeArenaFAB();
-        });
+        document.getElementById('arena-opt-cancel')?.addEventListener('click', closeArenaFAB);
 
         // Gallery file input
         document.getElementById('gallery-file-input')?.addEventListener('change', (e) => {
@@ -448,9 +446,18 @@ document.addEventListener('DOMContentLoaded', () => {
             openMediaPreview(url, type, false);
         });
 
+        // Text post screen
+        document.getElementById('tp-cancel-btn')?.addEventListener('click', () => showPage('community'));
+        document.getElementById('tp-post-btn')?.addEventListener('click', submitTextPost);
+        document.getElementById('tp-textarea')?.addEventListener('input', (e) => {
+            const el = document.getElementById('tp-char');
+            if (el) el.textContent = e.target.value.length;
+        });
+
         // Media capture screen
         document.getElementById('mc-close-btn')?.addEventListener('click', closeMediaCapture);
         document.getElementById('mc-capture-btn')?.addEventListener('click', handleCapturePress);
+        document.getElementById('mc-flip-btn')?.addEventListener('click', flipMediaCamera);
         document.querySelectorAll('.mc-mode-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 if (mcIsRecording) return;
@@ -465,8 +472,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('mp-retake-btn')?.addEventListener('click', retakeMedia);
         document.getElementById('mp-post-btn')?.addEventListener('click', postCapturedMedia);
 
-        // Record screen buttons
+        // Arena record screen
         document.getElementById('ar-close-btn')?.addEventListener('click', closeArenaRecord);
+        document.getElementById('ar-flip-btn')?.addEventListener('click', flipArenaCamera);
         document.getElementById('ar-record-btn')?.addEventListener('click', toggleArenaRecord);
         document.getElementById('ar-manual-rep')?.addEventListener('click', () => {
             arRepCount++;
@@ -475,16 +483,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         document.getElementById('ar-post-btn')?.addEventListener('click', arenaPostResult);
         document.getElementById('ar-save-btn')?.addEventListener('click', arenaSaveResult);
-
-        // Exercise selector pills in record screen
-        document.querySelectorAll('.ar-ex-pill').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (arIsRecording) return; // locked during recording
-                document.querySelectorAll('.ar-ex-pill').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                arExerciseId = btn.getAttribute('data-ex');
-            });
-        });
 
         // Post modal
         document.getElementById('apm-bg')?.addEventListener('click', closeArenaPostModal);
@@ -703,23 +701,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (recordInner) recordInner.classList.remove('recording');
         if (manualBtn) manualBtn.classList.add('hidden');
 
-        // Set exercise
-        if (lockedExId) {
-            arExerciseId = lockedExId;
-            document.querySelectorAll('.ar-ex-pill').forEach(b => {
-                b.classList.toggle('active', b.getAttribute('data-ex') === lockedExId);
-                if (arChallengeLock) b.disabled = true; // lock during challenge
-            });
+        // Set exercise — show challenge name if in challenge mode
+        const challengeNameEl = document.getElementById('ar-challenge-name');
+        if (arChallengeLock) {
+            arExerciseId = lockedExId || 'push1';
+            const ch = state.data.challenges.find(c => c.id === arChallengeLock.challengeId);
+            if (challengeNameEl) {
+                challengeNameEl.textContent = ch ? ch.title : 'Challenge';
+                challengeNameEl.classList.remove('hidden');
+            }
         } else {
-            document.querySelectorAll('.ar-ex-pill').forEach(b => { b.disabled = false; });
-            const firstPill = document.querySelector('.ar-ex-pill.active');
-            arExerciseId = firstPill?.getAttribute('data-ex') || 'push1';
+            arExerciseId = 'push1';
+            if (challengeNameEl) challengeNameEl.classList.add('hidden');
         }
 
         // Request camera
+        arFacingMode = 'environment';
         try {
             arStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+                video: { facingMode: arFacingMode },
                 audio: false
             });
             const preview = document.getElementById('ar-preview');
@@ -894,7 +894,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeArenaRecord() {
         clearInterval(arTimerInterval);
         if (arRecorder && arRecorder.state !== 'inactive') {
-            arRecorder.stop();
+            try { arRecorder.stop(); } catch (e) {}
         }
         if (arStream) {
             arStream.getTracks().forEach(t => t.stop());
@@ -903,8 +903,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const preview = document.getElementById('ar-preview');
         if (preview) preview.srcObject = null;
         document.getElementById('ar-result-overlay')?.classList.add('hidden');
+        document.getElementById('ar-manual-rep')?.classList.add('hidden');
+        document.getElementById('ar-record-inner')?.classList.remove('recording');
         arIsRecording = false;
         arChallengeLock = null;
+        showPage('community');
     }
 
     // ---- Create post modal ----
@@ -1040,10 +1043,60 @@ document.addEventListener('DOMContentLoaded', () => {
     let mcCapturedUrl  = null;
     let mcCapturedType = null;  // 'image' | 'video'
     let mcFromCamera   = false; // true = we own the objectURL, revoke on retake
+    let mcFacingMode   = 'environment';
+    let arFacingMode   = 'environment';
+
+    // ---- Text Post ----
+    function openTextPost() {
+        const ta = document.getElementById('tp-textarea');
+        const ch = document.getElementById('tp-char');
+        if (ta) ta.value = '';
+        if (ch) ch.textContent = '0';
+        showPage('text-post');
+        setTimeout(() => ta?.focus(), 200);
+    }
+
+    function submitTextPost() {
+        const text = document.getElementById('tp-textarea')?.value?.trim() || '';
+        if (!text) { showToast('Skriv noe først', ''); return; }
+
+        const newPost = {
+            id:         Date.now(),
+            userId:     'user_me',
+            username:   state.data.userProfile.name || 'You',
+            type:       'text',
+            content:    text,
+            caption:    '',
+            exercise:   null,
+            exerciseId: null,
+            reps:       null,
+            verified:   false,
+            createdAt:  new Date().toISOString(),
+            likes:      0,
+            liked:      false,
+        };
+        state.data.arenaPosts.push(newPost);
+        state.data.userProfile.xp += 5;
+        checkLevelUp();
+        saveState();
+        renderProfile();
+
+        document.querySelectorAll('.arena-seg').forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-arena-tab="feed"]')?.classList.add('active');
+        document.querySelectorAll('.arena-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('arena-tab-feed')?.classList.add('active');
+        renderArenaFeed();
+        showPage('community');
+        showToast('Postet!', '+5 XP');
+    }
 
     async function openMediaCapture() {
+        mcFacingMode = 'environment';
         try {
-            mcStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            mcStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: mcFacingMode },
+                audio: true
+            });
         } catch (err) {
             showToast('Kamera ikke tilgjengelig', '');
             return;
@@ -1145,10 +1198,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function closeMediaCapture() {
         clearInterval(mcTimerInterval);
-        if (mcRecorder && mcRecorder.state !== 'inactive') mcRecorder.stop();
+        if (mcRecorder && mcRecorder.state !== 'inactive') try { mcRecorder.stop(); } catch(e){}
         stopStream();
         mcIsRecording = false;
         showPage('community');
+    }
+
+    async function flipMediaCamera() {
+        if (mcIsRecording) return;
+        mcFacingMode = mcFacingMode === 'environment' ? 'user' : 'environment';
+        if (mcStream) mcStream.getTracks().forEach(t => t.stop());
+        try {
+            mcStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: mcFacingMode },
+                audio: true
+            });
+            const preview = document.getElementById('mc-preview');
+            if (preview) preview.srcObject = mcStream;
+        } catch (e) {
+            showToast('Klarte ikke snu kamera', '');
+        }
+    }
+
+    async function flipArenaCamera() {
+        if (arIsRecording) return;
+        arFacingMode = arFacingMode === 'environment' ? 'user' : 'environment';
+        if (arStream) arStream.getTracks().forEach(t => t.stop());
+        try {
+            arStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: arFacingMode },
+                audio: false
+            });
+            const preview = document.getElementById('ar-preview');
+            if (preview) { preview.srcObject = arStream; preview.play().catch(()=>{}); }
+        } catch (e) {
+            showToast('Klarte ikke snu kamera', '');
+        }
     }
 
     // ---- Media Preview ----

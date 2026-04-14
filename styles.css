@@ -4803,68 +4803,97 @@ spline-viewer {
     box-shadow: 0 4px 30px rgba(0,242,255,0.6);
 }
 
-.arena-fab-sheet {
+/* FAB Bottom Sheet — full width, slides from bottom */
+.fab-bottom-sheet {
     position: fixed;
-    bottom: calc(var(--tab-height) + 78px);
-    right: 16px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 310;
     background: var(--ios-bg2);
-    border-radius: 14px;
-    overflow: hidden;
-    z-index: 49;
-    min-width: 180px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    transform: scale(0.85) translateY(10px);
-    transform-origin: bottom right;
-    opacity: 0;
+    border-radius: 20px 20px 0 0;
+    padding: 0 0 calc(env(safe-area-inset-bottom) + 8px);
+    box-shadow: 0 -4px 32px rgba(0,0,0,0.6);
+    transform: translateY(100%);
+    transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
     pointer-events: none;
-    transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.arena-fab-sheet.visible {
-    transform: scale(1) translateY(0);
-    opacity: 1;
+.fab-bottom-sheet.visible {
+    transform: translateY(0);
     pointer-events: auto;
 }
 
-.arena-fab-option {
+.fbs-handle {
+    width: 36px;
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+    margin: 12px auto 8px;
+}
+
+.fbs-option {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 18px;
-    font-size: 0.9rem;
+    gap: 16px;
+    width: 100%;
+    padding: 16px 24px;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--ios-label);
-    cursor: pointer;
+    background: none;
+    border: none;
     border-bottom: 1px solid var(--ios-separator);
+    cursor: pointer;
+    text-align: left;
     transition: background 0.15s;
 }
 
-.arena-fab-option:last-child {
+.fbs-option:last-child {
     border-bottom: none;
 }
 
-.arena-fab-option:active {
-    background: var(--ios-bg3);
+.fbs-option:active {
+    background: rgba(255,255,255,0.06);
 }
 
-.afo-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: var(--primary);
-    color: #000;
+.fbs-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(0,242,255,0.12);
+    color: var(--primary);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
     flex-shrink: 0;
+}
+
+.fbs-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ios-label);
+}
+
+.fbs-cancel {
+    border-top: 8px solid rgba(0,0,0,0.2);
+    color: var(--ios-label2);
+    justify-content: center;
+    margin-top: 4px;
+}
+
+.fbs-cancel .fbs-label {
+    color: var(--ios-label2);
+    font-weight: 500;
 }
 
 .arena-fab-backdrop {
     position: fixed;
     inset: 0;
-    z-index: 48;
+    z-index: 309;
+    background: rgba(0,0,0,0.5);
     display: none;
+    backdrop-filter: blur(2px);
 }
 
 .arena-fab-backdrop.visible {
@@ -4896,19 +4925,43 @@ spline-viewer {
     padding: 52px 16px 16px;
 }
 
-.ar-close-btn {
+.ar-close-btn,
+.ar-flip-btn {
     background: rgba(0,0,0,0.55);
     border: none;
     color: #fff;
-    font-size: 1.2rem;
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     backdrop-filter: blur(6px);
+    flex-shrink: 0;
+}
+
+.ar-challenge-name {
+    position: relative;
+    z-index: 1;
+    align-self: center;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 7px 18px;
+    border-radius: 20px;
+    backdrop-filter: blur(6px);
+    flex-shrink: 0;
+}
+
+.ar-timer-bar {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    padding: 4px 0 8px;
+    flex-shrink: 0;
 }
 
 .ar-rep-display {
@@ -5447,6 +5500,22 @@ spline-viewer {
     color: #fff;
 }
 
+.mc-flip-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.55);
+    border: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    flex-shrink: 0;
+}
+
+/* kept for safety — no longer in HTML but guard against stale cache */
 .mc-top-spacer {
     width: 38px;
     flex-shrink: 0;
@@ -5596,4 +5665,81 @@ spline-viewer {
 
 .mp-caption-input {
     margin-bottom: 0;
+}
+
+/* ============================================================
+   TEXT POST SCREEN
+   ============================================================ */
+
+.tp-page.active {
+    display: flex;
+    flex-direction: column;
+    background: var(--ios-bg);
+}
+
+.tp-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 52px 16px 14px;
+    border-bottom: 1px solid var(--ios-separator);
+    flex-shrink: 0;
+}
+
+.tp-cancel-btn {
+    background: none;
+    border: none;
+    color: var(--ios-label2);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 6px 0;
+    min-width: 60px;
+}
+
+.tp-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ios-label);
+}
+
+.tp-post-btn {
+    font-size: 0.88rem;
+    padding: 8px 20px;
+    border-radius: 22px;
+    min-width: 60px;
+}
+
+.tp-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    min-height: 0;
+}
+
+.tp-textarea {
+    flex: 1;
+    width: 100%;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--ios-label);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    resize: none;
+    font-family: inherit;
+    padding: 0;
+}
+
+.tp-textarea::placeholder {
+    color: var(--ios-label2);
+}
+
+.tp-char-wrap {
+    text-align: right;
+    font-size: 0.72rem;
+    color: var(--ios-label2);
+    padding-top: 8px;
+    flex-shrink: 0;
 }
