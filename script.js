@@ -746,64 +746,234 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ---- Motion-based rep tracker ----
-    // Algorithm: frame-differencing on a downsampled canvas.
-    // When motion fraction rises above RT_HIGH for RT_MIN_ACTIVE_MS
-    // then drops below RT_LOW → count one rep. Cooldown prevents double-counts.
-    // Works independent of camera angle and needs no external libraries.
-    // Manual button always visible as fallback.
+    // ---- Pose-based rep tracker ----
+    // Primary:  MoveNet (TF.js already loaded) — elbow-angle state machine.
+    //           DOWN = elbow < PT_DOWN_ANGLE°, UP = elbow > PT_UP_ANGLE°
+    //           Rep = DOWN → UP cycle.
+    // Fallback: frame-differencing on downsampled canvas (no extra libs).
 
-    const RT_W  = 80;              // downsampled width for speed
-    const RT_H  = 60;              // downsampled height
-    const RT_DIFF_THRESH = 18;     // per-channel diff to flag a pixel as "moving"
-    const RT_HIGH = 0.018;         // fraction of pixels moving → "in motion"
-    const RT_LOW  = 0.007;         // fraction → "at rest"
-    const RT_MIN_ACTIVE_MS = 280;  // motion must last this long to count
-    const RT_COOLDOWN_MS   = 750;  // min ms between accepted reps
-    const RT_SMOOTH        = 8;    // frames in smoothing window
+    // --- Pose tracking ---
+    const PT_DOWN_ANGLE  = 100;   // elbow angle below this = "down"
+    const PT_UP_ANGLE    = 150;   // elbow angle above this = "up"
+    const PT_MIN_CONF    = 0.3;   // minimum keypoint score to use
+    const PT_SMOOTH      = 4;     // frames to smooth angle
+    const PT_COOLDOWN_MS = 600;   // min ms between reps
 
-    let rt = {
-        active:    false,
-        canvas:    null,
-        ctx:       null,
-        prevGray:  null,
-        history:   [],
-        state:     'rest',   // 'rest' | 'active'
-        activeAt:  0,
-        lastRep:   0,
-        frameN:    0,
-        raf:       null
+    // MoveNet keypoint indices (matches scanner.js KP object)
+    const AR_KP = {
+        LEFT_SHOULDER: 5, RIGHT_SHOULDER: 6,
+        LEFT_ELBOW:    7, RIGHT_ELBOW:    8,
+        LEFT_WRIST:    9, RIGHT_WRIST:   10,
     };
 
-    function startRepTracking() {
-        console.log('[RepTrack] Tracking started for exercise:', arExerciseId);
-        rt.canvas = document.createElement('canvas');
-        rt.canvas.width  = RT_W;
-        rt.canvas.height = RT_H;
-        rt.ctx      = rt.canvas.getContext('2d', { willReadFrequently: true });
-        rt.prevGray = null;
-        rt.history  = [];
-        rt.state    = 'rest';
-        rt.activeAt = 0;
-        rt.lastRep  = 0;
-        rt.frameN   = 0;
-        rt.active   = true;
+    let pt = {
+        active:   false,
+        detector: null,   // MoveNet detector instance — reused across sessions
+        state:    'up',   // 'up' | 'down'
+        lastRep:  0,
+        angles:   [],
+        raf:      null,
+        frameN:   0,
+    };
+
+    // --- Motion tracking fallback ---
+    const RT_W             = 80;
+    const RT_H             = 60;
+    const RT_DIFF_THRESH   = 18;
+    const RT_HIGH          = 0.018;
+    const RT_LOW           = 0.007;
+    const RT_MIN_ACTIVE_MS = 280;
+    const RT_COOLDOWN_MS   = 750;
+    const RT_SMOOTH        = 8;
+
+    let rt = {
+        active:   false,
+        canvas:   null,
+        ctx:      null,
+        prevGray: null,
+        history:  [],
+        state:    'rest',
+        activeAt: 0,
+        lastRep:  0,
+        frameN:   0,
+        raf:      null,
+    };
+
+    // ---- Pose angle helpers ----
+
+    function ptKp(pose, idx) {
+        const k = pose.keypoints[idx];
+        return (k && k.score >= PT_MIN_CONF) ? k : null;
+    }
+
+    function ptAngle(a, b, c) {
+        if (!a || !b || !c) return null;
+        const ba  = { x: a.x - b.x, y: a.y - b.y };
+        const bc  = { x: c.x - b.x, y: c.y - b.y };
+        const dot = ba.x * bc.x + ba.y * bc.y;
+        const mag = Math.hypot(ba.x, ba.y) * Math.hypot(bc.x, bc.y);
+        if (mag === 0) return null;
+        return Math.acos(Math.max(-1, Math.min(1, dot / mag))) * (180 / Math.PI);
+    }
+
+    function ptSmoothedAngle(pose) {
+        // Use the higher-confidence arm side; fall back to whichever side is visible
+        const lS = ptKp(pose, AR_KP.LEFT_SHOULDER);
+        const lE = ptKp(pose, AR_KP.LEFT_ELBOW);
+        const lW = ptKp(pose, AR_KP.LEFT_WRIST);
+        const rS = ptKp(pose, AR_KP.RIGHT_SHOULDER);
+        const rE = ptKp(pose, AR_KP.RIGHT_ELBOW);
+        const rW = ptKp(pose, AR_KP.RIGHT_WRIST);
+
+        const la = ptAngle(lS, lE, lW);
+        const ra = ptAngle(rS, rE, rW);
+
+        let raw = null;
+        if (la !== null && ra !== null) {
+            const lConf = (lS?.score ?? 0) + (lE?.score ?? 0) + (lW?.score ?? 0);
+            const rConf = (rS?.score ?? 0) + (rE?.score ?? 0) + (rW?.score ?? 0);
+            raw = lConf >= rConf ? la : ra;
+        } else {
+            raw = la ?? ra;
+        }
+        if (raw === null) return null;
+
+        pt.angles.push(raw);
+        if (pt.angles.length > PT_SMOOTH) pt.angles.shift();
+        return pt.angles.reduce((a, b) => a + b, 0) / pt.angles.length;
+    }
+
+    function ptProcessPose(pose) {
+        const angle = ptSmoothedAngle(pose);
+        if (angle === null) return;
+
+        if (pt.frameN % 30 === 0) console.log('[PoseTrack] Elbow angle:', angle.toFixed(1), '° state:', pt.state);
+
+        const now = Date.now();
+        if (pt.state === 'up' && angle < PT_DOWN_ANGLE) {
+            pt.state = 'down';
+            console.log('[PoseTrack] DOWN detected, angle:', angle.toFixed(1));
+        } else if (pt.state === 'down' && angle > PT_UP_ANGLE) {
+            if (now - pt.lastRep >= PT_COOLDOWN_MS) {
+                pt.lastRep = now;
+                arRepCount++;
+                console.log('[PoseTrack] Rep detected! Count:', arRepCount);
+                flashRepCount();
+            }
+            pt.state = 'up';
+        }
+    }
+
+    async function arDetectLoop() {
+        if (!pt.active || !pt.detector) return;
+        pt.frameN++;
+        if (pt.frameN % 60 === 0) console.log('[PoseTrack] Tracking loop active, frame', pt.frameN);
 
         const video = document.getElementById('ar-preview');
+        if (video && video.readyState >= 2) {
+            try {
+                const poses = await pt.detector.estimatePoses(video);
+                if (pt.active && poses.length > 0) {
+                    console.log('[PoseTrack] Frame captured');
+                    ptProcessPose(poses[0]);
+                }
+            } catch (e) {
+                console.warn('[PoseTrack] estimatePoses failed:', e.message);
+            }
+        } else if (video && video.paused) {
+            video.play().catch(() => {});
+        }
+
+        if (pt.active) pt.raf = requestAnimationFrame(arDetectLoop);
+    }
+
+    // ---- Public API ----
+
+    function startRepTracking() {
+        console.log('[PoseTrack] Tracking started for exercise:', arExerciseId);
+        pt.state   = 'up';
+        pt.lastRep = 0;
+        pt.angles  = [];
+        pt.frameN  = 0;
+        pt.active  = true;
+
+        const video = document.getElementById('ar-preview');
+        if (video && video.paused) {
+            console.warn('[PoseTrack] Video paused at start, resuming');
+            video.play().catch(() => {});
+        }
+
+        if (window.poseDetection) {
+            if (pt.detector) {
+                // Detector already loaded from a previous session — start immediately
+                console.log('[PoseTrack] Reusing MoveNet detector');
+                pt.raf = requestAnimationFrame(arDetectLoop);
+            } else {
+                console.log('[PoseTrack] Loading MoveNet detector...');
+                window.poseDetection.createDetector(
+                    window.poseDetection.SupportedModels.MoveNet,
+                    { modelType: window.poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING }
+                ).then(det => {
+                    pt.detector = det;
+                    console.log('[PoseTrack] MoveNet ready — starting pose loop');
+                    if (pt.active) pt.raf = requestAnimationFrame(arDetectLoop);
+                }).catch(err => {
+                    console.warn('[PoseTrack] MoveNet load failed, falling back to motion:', err.message);
+                    pt.active = false;
+                    startMotionTracking();
+                });
+            }
+        } else {
+            console.warn('[PoseTrack] window.poseDetection not available, falling back to motion');
+            pt.active = false;
+            startMotionTracking();
+        }
+    }
+
+    function stopRepTracking() {
+        console.log('[PoseTrack] Tracking stopped. Final count:', arRepCount);
+        pt.active = false;
+        if (pt.raf) { cancelAnimationFrame(pt.raf); pt.raf = null; }
+        pt.angles = [];
+        stopMotionTracking();  // no-op if fallback was not running
+    }
+
+    // ---- Motion tracking fallback ----
+
+    function startMotionTracking() {
+        console.log('[RepTrack] Motion fallback started');
+        rt.canvas        = document.createElement('canvas');
+        rt.canvas.width  = RT_W;
+        rt.canvas.height = RT_H;
+        rt.ctx           = rt.canvas.getContext('2d', { willReadFrequently: true });
+        rt.prevGray      = null;
+        rt.history       = [];
+        rt.state         = 'rest';
+        rt.activeAt      = 0;
+        rt.lastRep       = 0;
+        rt.frameN        = 0;
+        rt.active        = true;
+
+        const video = document.getElementById('ar-preview');
+        if (video && video.paused) video.play().catch(() => {});
+
         const tick = () => {
             if (!rt.active) return;
             rt.frameN++;
-            // process every 4th frame ≈ 15 fps — enough for rep detection
-            if (rt.frameN % 4 === 0 && video && video.readyState >= 2) {
-                processRTFrame(video);
+            if (rt.frameN % 60 === 0) console.log('[RepTrack] Motion loop active, frame', rt.frameN);
+            if (rt.frameN % 4 === 0) {
+                if (video && video.readyState >= 2) {
+                    processRTFrame(video);
+                } else if (video && video.paused) {
+                    video.play().catch(() => {});
+                }
             }
             rt.raf = requestAnimationFrame(tick);
         };
         rt.raf = requestAnimationFrame(tick);
     }
 
-    function stopRepTracking() {
-        console.log('[RepTrack] Tracking stopped. Final count:', arRepCount);
+    function stopMotionTracking() {
         rt.active = false;
         if (rt.raf) { cancelAnimationFrame(rt.raf); rt.raf = null; }
         rt.prevGray = null;
@@ -812,45 +982,43 @@ document.addEventListener('DOMContentLoaded', () => {
     function processRTFrame(video) {
         const { canvas, ctx } = rt;
         try { ctx.drawImage(video, 0, 0, RT_W, RT_H); }
-        catch (_) { return; }
+        catch (e) { console.warn('[RepTrack] drawImage failed:', e.message); return; }
 
         let imgData;
         try { imgData = ctx.getImageData(0, 0, RT_W, RT_H); }
-        catch (_) { return; }  // SecurityError on cross-origin streams
+        catch (e) { console.warn('[RepTrack] getImageData failed:', e.message); return; }
 
-        // Convert to greyscale (fast integer path)
-        const pix = imgData.data;
+        if (rt.frameN % 60 === 0) console.log('[RepTrack] Frame captured, readyState:', video.readyState);
+
+        const pix  = imgData.data;
         const gray = new Uint8Array(RT_W * RT_H);
         for (let i = 0; i < gray.length; i++) {
             gray[i] = (pix[i*4]*77 + pix[i*4+1]*150 + pix[i*4+2]*29) >> 8;
         }
-
         if (!rt.prevGray) { rt.prevGray = gray; return; }
 
-        // Count moving pixels
         let moving = 0;
         for (let i = 0; i < gray.length; i++) {
             if (Math.abs(gray[i] - rt.prevGray[i]) > RT_DIFF_THRESH) moving++;
         }
         rt.prevGray = gray;
 
-        // Smooth motion fraction
         rt.history.push(moving / gray.length);
         if (rt.history.length > RT_SMOOTH) rt.history.shift();
-        const smooth = rt.history.reduce((a,b) => a+b, 0) / rt.history.length;
+        const smooth = rt.history.reduce((a, b) => a + b, 0) / rt.history.length;
 
-        // State machine: rest → active → rest = 1 rep
+        if (smooth > RT_HIGH / 2) console.log('[RepTrack] Motion detected, smooth:', smooth.toFixed(4), 'state:', rt.state);
+
         const now = Date.now();
         if (rt.state === 'rest' && smooth > RT_HIGH) {
             rt.state    = 'active';
             rt.activeAt = now;
-
         } else if (rt.state === 'active' && smooth < RT_LOW) {
             const dur = now - rt.activeAt;
             if (dur >= RT_MIN_ACTIVE_MS && now - rt.lastRep >= RT_COOLDOWN_MS) {
                 rt.lastRep = now;
                 arRepCount++;
-                console.log('[RepTrack] Rep detected! Count:', arRepCount);
+                console.log('[RepTrack] Motion rep! Count:', arRepCount);
                 flashRepCount();
             }
             rt.state = 'rest';
@@ -912,7 +1080,14 @@ document.addEventListener('DOMContentLoaded', () => {
             arResultDuration = secs;
         }, 500);
 
-        // Start automatic motion-based rep counting
+        // Ensure live preview is still playing after MediaRecorder init
+        const previewEl = document.getElementById('ar-preview');
+        if (previewEl && previewEl.paused) {
+            console.warn('[RepTrack] Preview paused after recorder start, resuming');
+            previewEl.play().catch(() => {});
+        }
+
+        // Start pose-based rep counting (falls back to motion if MoveNet unavailable)
         startRepTracking();
     }
 
