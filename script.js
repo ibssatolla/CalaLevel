@@ -843,9 +843,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return pt.angles.reduce((a, b) => a + b, 0) / pt.angles.length;
     }
 
+    // Skeleton connections — pairs of MoveNet keypoint indices
+    const AR_SKELETON = [
+        [5, 7], [7, 9],     // left arm: shoulder → elbow → wrist
+        [6, 8], [8, 10],    // right arm: shoulder → elbow → wrist
+        [5, 6],             // shoulders
+        [5, 11], [6, 12],   // torso
+        [11, 12],           // hips
+        [11, 13], [13, 15], // left leg
+        [12, 14], [14, 16], // right leg
+    ];
+
     function ptProcessPose(pose) {
         const angle = ptSmoothedAngle(pose);
-        if (angle === null) return;
+        if (angle === null) return angle;
 
         if (pt.frameN % 30 === 0) console.log('[PoseTrack] Elbow angle:', angle.toFixed(1), '° state:', pt.state);
 
@@ -862,6 +873,65 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             pt.state = 'up';
         }
+        return angle;
+    }
+
+    function drawArenaSkeleton(pose, ctx, canvasW, canvasH, videoW, videoH, angle, state) {
+        // Scale keypoint pixel coords (video space) → canvas display space,
+        // matching the object-fit: cover crop applied to the video.
+        const scale   = Math.max(canvasW / videoW, canvasH / videoH);
+        const offsetX = (canvasW - videoW * scale) / 2;
+        const offsetY = (canvasH - videoH * scale) / 2;
+
+        const sx = x => x * scale + offsetX;
+        const sy = y => y * scale + offsetY;
+
+        const color = state === 'down' ? '#ff4444' : '#44ff88';
+        const kps   = pose.keypoints;
+
+        ctx.lineWidth   = 3;
+        ctx.strokeStyle = color;
+        ctx.lineCap     = 'round';
+
+        for (const [a, b] of AR_SKELETON) {
+            const ka = kps[a], kb = kps[b];
+            if (ka?.score >= PT_MIN_CONF && kb?.score >= PT_MIN_CONF) {
+                ctx.beginPath();
+                ctx.moveTo(sx(ka.x), sy(ka.y));
+                ctx.lineTo(sx(kb.x), sy(kb.y));
+                ctx.stroke();
+            }
+        }
+
+        ctx.fillStyle = color;
+        for (const kp of kps) {
+            if (kp.score >= PT_MIN_CONF) {
+                ctx.beginPath();
+                ctx.arc(sx(kp.x), sy(kp.y), 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Angle label near the more-visible elbow
+        if (angle !== null) {
+            const lE = kps[7], rE = kps[8];
+            const anchor = (rE?.score ?? 0) >= (lE?.score ?? 0) ? rE : lE;
+            if (anchor?.score >= PT_MIN_CONF) {
+                const tx = sx(anchor.x) + 12;
+                const ty = sy(anchor.y) - 8;
+                ctx.font        = 'bold 22px system-ui, sans-serif';
+                ctx.lineWidth   = 4;
+                ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+                ctx.strokeText(`${Math.round(angle)}°`, tx, ty);
+                ctx.fillStyle   = 'white';
+                ctx.fillText(`${Math.round(angle)}°`, tx, ty);
+            }
+        }
+    }
+
+    function clearPoseCanvas() {
+        const canvas = document.getElementById('ar-pose-canvas');
+        if (canvas) canvas.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height);
     }
 
     async function arDetectLoop() {
@@ -869,13 +939,38 @@ document.addEventListener('DOMContentLoaded', () => {
         pt.frameN++;
         if (pt.frameN % 60 === 0) console.log('[PoseTrack] Tracking loop active, frame', pt.frameN);
 
-        const video = document.getElementById('ar-preview');
-        if (video && video.readyState >= 2) {
+        const video  = document.getElementById('ar-preview');
+        const canvas = document.getElementById('ar-pose-canvas');
+
+        if (video && video.readyState >= 2 && video.videoWidth > 0) {
+            // Keep canvas pixel dims in sync with display size for accurate overlay
+            if (canvas) {
+                const w = canvas.clientWidth  || video.videoWidth;
+                const h = canvas.clientHeight || video.videoHeight;
+                if (canvas.width !== w || canvas.height !== h) {
+                    canvas.width  = w;
+                    canvas.height = h;
+                }
+            }
+
             try {
                 const poses = await pt.detector.estimatePoses(video);
-                if (pt.active && poses.length > 0) {
+                if (!pt.active) return;
+
+                const ctx = canvas?.getContext('2d');
+                if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (poses.length > 0) {
                     console.log('[PoseTrack] Frame captured');
-                    ptProcessPose(poses[0]);
+                    const angle = ptProcessPose(poses[0]);
+                    if (ctx && canvas) {
+                        drawArenaSkeleton(
+                            poses[0], ctx,
+                            canvas.width, canvas.height,
+                            video.videoWidth, video.videoHeight,
+                            angle, pt.state
+                        );
+                    }
                 }
             } catch (e) {
                 console.warn('[PoseTrack] estimatePoses failed:', e.message);
@@ -935,6 +1030,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pt.active = false;
         if (pt.raf) { cancelAnimationFrame(pt.raf); pt.raf = null; }
         pt.angles = [];
+        clearPoseCanvas();
         stopMotionTracking();  // no-op if fallback was not running
     }
 
