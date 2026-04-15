@@ -753,27 +753,39 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fallback: frame-differencing on downsampled canvas (no extra libs).
 
     // --- Pose tracking ---
-    const PT_DOWN_ANGLE  = 100;   // elbow angle below this = "down"
-    const PT_UP_ANGLE    = 150;   // elbow angle above this = "up"
-    const PT_MIN_CONF    = 0.3;   // minimum keypoint score to use
-    const PT_SMOOTH      = 4;     // frames to smooth angle
-    const PT_COOLDOWN_MS = 600;   // min ms between reps
+    const PT_DOWN_ANGLE   = 100;   // elbow angle below this = "down"
+    const PT_UP_ANGLE     = 150;   // elbow angle above this = "up"
+    const PT_MIN_CONF     = 0.3;   // minimum keypoint score to use
+    const PT_SMOOTH       = 4;     // frames to smooth angle
+    const PT_COOLDOWN_MS  = 600;   // min ms between reps
+    const PT_SHALLOW_HINT = 120;   // dipped below here but not to 100° → too shallow
+    const PT_MIN_REP_MS   = 300;   // DOWN→UP faster than this → too fast
+    const PT_FEEDBACK_GAP = 2500;  // ms between feedback messages
 
     // MoveNet keypoint indices (matches scanner.js KP object)
     const AR_KP = {
-        LEFT_SHOULDER: 5, RIGHT_SHOULDER: 6,
-        LEFT_ELBOW:    7, RIGHT_ELBOW:    8,
-        LEFT_WRIST:    9, RIGHT_WRIST:   10,
+        LEFT_SHOULDER: 5, RIGHT_SHOULDER:  6,
+        LEFT_ELBOW:    7, RIGHT_ELBOW:     8,
+        LEFT_WRIST:    9, RIGHT_WRIST:    10,
+        LEFT_HIP:     11, RIGHT_HIP:      12,
+        LEFT_KNEE:    13, RIGHT_KNEE:     14,
     };
 
     let pt = {
-        active:   false,
-        detector: null,   // MoveNet detector instance — reused across sessions
-        state:    'up',   // 'up' | 'down'
-        lastRep:  0,
-        angles:   [],
-        raf:      null,
-        frameN:   0,
+        active:    false,
+        detector:  null,   // MoveNet detector instance — reused across sessions
+        state:     'up',   // 'up' | 'down'
+        lastRep:   0,
+        angles:    [],
+        raf:       null,
+        frameN:    0,
+        // Feedback tracking
+        prevAngle:    null,  // previous frame angle (direction detection)
+        minUp:        180,   // lowest angle seen while in 'up' state (shallow check)
+        peakDown:     0,     // highest angle seen while in 'down' state (extension check)
+        downAt:       0,     // timestamp when entered 'down' (speed check)
+        lastFeedback: 0,     // timestamp of last feedback shown
+        feedbackTimer: null, // clearTimeout handle
     };
 
     // --- Motion tracking fallback ---
@@ -854,25 +866,123 @@ document.addEventListener('DOMContentLoaded', () => {
         [12, 14], [14, 16], // right leg
     ];
 
+    // ---- Form feedback ----
+
+    function showFormFeedback(msg) {
+        const now = Date.now();
+        if (now - pt.lastFeedback < PT_FEEDBACK_GAP) return;
+        pt.lastFeedback = now;
+
+        const el = document.getElementById('ar-feedback');
+        if (!el) return;
+
+        // Restart CSS animation by removing and re-adding the class
+        el.textContent = msg;
+        el.className   = 'ar-feedback hidden';
+        void el.offsetWidth;                   // force reflow — resets animation
+        el.className   = 'ar-feedback show';
+
+        if (pt.feedbackTimer) clearTimeout(pt.feedbackTimer);
+        pt.feedbackTimer = setTimeout(() => {
+            el.className = 'ar-feedback hidden';
+        }, 2300);
+    }
+
+    function clearFormFeedback() {
+        if (pt.feedbackTimer) { clearTimeout(pt.feedbackTimer); pt.feedbackTimer = null; }
+        const el = document.getElementById('ar-feedback');
+        if (el) el.className = 'ar-feedback hidden';
+    }
+
+    // Body-straightness check: angle at hip (shoulder → hip → knee)
+    // A proper push-up plank ≈ 165–180°; hip drooping < 140°
+    function ptBodyAngle(pose) {
+        const lS = ptKp(pose, AR_KP.LEFT_SHOULDER);
+        const lH = ptKp(pose, AR_KP.LEFT_HIP);
+        const lK = ptKp(pose, AR_KP.LEFT_KNEE);
+        const rS = ptKp(pose, AR_KP.RIGHT_SHOULDER);
+        const rH = ptKp(pose, AR_KP.RIGHT_HIP);
+        const rK = ptKp(pose, AR_KP.RIGHT_KNEE);
+        const la = ptAngle(lS, lH, lK);
+        const ra = ptAngle(rS, rH, rK);
+        if (la !== null && ra !== null) return (la + ra) / 2;
+        return la ?? ra;
+    }
+
     function ptProcessPose(pose) {
         const angle = ptSmoothedAngle(pose);
-        if (angle === null) return angle;
+        if (angle === null) return null;
 
-        if (pt.frameN % 30 === 0) console.log('[PoseTrack] Elbow angle:', angle.toFixed(1), '° state:', pt.state);
+        const now  = Date.now();
+        const prev = pt.prevAngle;
+        pt.prevAngle = angle;
 
-        const now = Date.now();
-        if (pt.state === 'up' && angle < PT_DOWN_ANGLE) {
-            pt.state = 'down';
-            console.log('[PoseTrack] DOWN detected, angle:', angle.toFixed(1));
-        } else if (pt.state === 'down' && angle > PT_UP_ANGLE) {
-            if (now - pt.lastRep >= PT_COOLDOWN_MS) {
-                pt.lastRep = now;
-                arRepCount++;
-                console.log('[PoseTrack] Rep detected! Count:', arRepCount);
-                flashRepCount();
-            }
-            pt.state = 'up';
+        if (pt.frameN % 30 === 0) {
+            console.log('[PoseTrack] Angle:', angle.toFixed(1), '° state:', pt.state);
         }
+
+        // --- Body form check (only while actively doing a rep) ---
+        if (pt.state === 'down') {
+            const bodyA = ptBodyAngle(pose);
+            if (bodyA !== null && bodyA < 140) {
+                showFormFeedback('Hold kroppen rett');
+            }
+        }
+
+        // --- State machine with feedback ---
+        if (pt.state === 'up') {
+            // Track how low the angle dips while still in 'up'
+            if (angle < pt.minUp) pt.minUp = angle;
+
+            // Shallow attempt: dipped past PT_SHALLOW_HINT but bounced back
+            // without ever crossing PT_DOWN_ANGLE → user is not going deep enough
+            if (prev !== null && angle > prev + 1 && angle > PT_SHALLOW_HINT + 8 &&
+                pt.minUp < PT_SHALLOW_HINT) {
+                showFormFeedback('Gå lavere');
+                pt.minUp = 180;  // reset so we don't retrigger on same dip
+            }
+
+            if (angle < PT_DOWN_ANGLE) {
+                pt.state    = 'down';
+                pt.downAt   = now;
+                pt.minUp    = 180;   // reset for next 'up' phase
+                pt.peakDown = 0;
+                console.log('[PoseTrack] DOWN detected, angle:', angle.toFixed(1));
+            }
+
+        } else {  // state === 'down'
+
+            // Track highest point reached on the way back up
+            if (angle > pt.peakDown) pt.peakDown = angle;
+
+            // Partial extension: angle peaked between 125° and PT_UP_ANGLE,
+            // then started going back down → user isn't locking out
+            if (prev !== null && angle < prev - 3 &&
+                pt.peakDown > 125 && pt.peakDown < PT_UP_ANGLE) {
+                console.log('[PoseTrack] Rep rejected: no full extension, peak', pt.peakDown.toFixed(1));
+                showFormFeedback('Strekk armene helt ut');
+                pt.peakDown = 0;  // reset to avoid re-triggering mid-set
+            }
+
+            if (angle > PT_UP_ANGLE) {
+                const duration = now - pt.downAt;
+
+                if (duration < PT_MIN_REP_MS) {
+                    // Rep done too fast — reject
+                    console.log('[PoseTrack] Rep rejected: too fast (' + duration + 'ms)');
+                    showFormFeedback('For rask – ro ned');
+                } else if (now - pt.lastRep >= PT_COOLDOWN_MS) {
+                    pt.lastRep = now;
+                    arRepCount++;
+                    console.log('[PoseTrack] Rep detected! Count:', arRepCount);
+                    flashRepCount();
+                }
+
+                pt.state    = 'up';
+                pt.peakDown = 0;
+            }
+        }
+
         return angle;
     }
 
@@ -986,11 +1096,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function startRepTracking() {
         console.log('[PoseTrack] Tracking started for exercise:', arExerciseId);
-        pt.state   = 'up';
-        pt.lastRep = 0;
-        pt.angles  = [];
-        pt.frameN  = 0;
-        pt.active  = true;
+        pt.state        = 'up';
+        pt.lastRep      = 0;
+        pt.angles       = [];
+        pt.frameN       = 0;
+        pt.active       = true;
+        pt.prevAngle    = null;
+        pt.minUp        = 180;
+        pt.peakDown     = 0;
+        pt.downAt       = 0;
+        pt.lastFeedback = 0;
 
         const video = document.getElementById('ar-preview');
         if (video && video.paused) {
@@ -1031,6 +1146,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (pt.raf) { cancelAnimationFrame(pt.raf); pt.raf = null; }
         pt.angles = [];
         clearPoseCanvas();
+        clearFormFeedback();
         stopMotionTracking();  // no-op if fallback was not running
     }
 
