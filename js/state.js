@@ -107,7 +107,10 @@ export function loadUserState() {
                 state.data.userProfile.achievements = defaultState.userProfile.achievements;
             }
             state.data.userProfile = { ...defaultState.userProfile, ...parsed.userProfile };
+            // Deep-merge stats to avoid missing fields when saved state has partial stats
+            state.data.userProfile.stats = { ...defaultState.userProfile.stats, ...(parsed.userProfile?.stats || {}) };
             // Ensure new achievement entries exist (for users with old saves)
+            if (!state.data.userProfile.achievements) state.data.userProfile.achievements = [];
             const defaultIds = defaultState.userProfile.achievements.map(a => a.id);
             const existingIds = state.data.userProfile.achievements.map(a => a.id);
             defaultIds.forEach(id => {

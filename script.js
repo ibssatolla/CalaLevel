@@ -31,6 +31,7 @@ window.showPage = showPage;
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('CalaLevel initialized');
+    window.__calaReady = false;
 
     // Wire up all [data-page] elements (nav links, buttons, logo)
     document.querySelectorAll('[data-page]').forEach(el => {
@@ -243,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         svg.appendChild(path);
     }
 
-    renderSkillTree();
+    try { renderSkillTree(); } catch(e) { console.error('[Init] renderSkillTree failed:', e); }
 
     // Initialize Map Module
     initMap();
@@ -483,6 +484,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         document.getElementById('ar-post-btn')?.addEventListener('click', arenaPostResult);
         document.getElementById('ar-save-btn')?.addEventListener('click', arenaSaveResult);
+        document.getElementById('ar-cc-post-btn')?.addEventListener('click', arenaPostResult);
+        document.getElementById('ar-cc-save-btn')?.addEventListener('click', arCCSaveToCamera);
+        document.getElementById('ar-cc-done-btn')?.addEventListener('click', arCCDone);
 
         // Post modal
         document.getElementById('apm-bg')?.addEventListener('click', closeArenaPostModal);
@@ -698,6 +702,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (countEl) countEl.textContent = '0';
         if (timerEl) timerEl.textContent = '0:00';
         if (resultOverlay) resultOverlay.classList.add('hidden');
+        document.getElementById('ar-challenge-complete')?.classList.add('hidden');
+        stopConfetti();
         if (recordInner) recordInner.classList.remove('recording');
         if (manualBtn) manualBtn.classList.add('hidden');
 
@@ -1246,6 +1252,114 @@ document.addEventListener('DOMContentLoaded', () => {
         el.classList.add('rep-pop');
         setTimeout(() => el.classList.remove('rep-pop'), 350);
         if (navigator.vibrate) navigator.vibrate(55);
+
+        // Check challenge target
+        if (arChallengeLock && arRepCount >= arChallengeLock.target && arIsRecording) {
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
+            setTimeout(() => stopArenaRecording(), 800);
+        }
+    }
+
+    // ---- Confetti system ----
+    let _confettiRaf = null;
+    let _confettiParticles = [];
+
+    function startConfetti() {
+        const canvas = document.getElementById('ar-confetti-canvas');
+        if (!canvas) return;
+        canvas.classList.remove('hidden');
+        canvas.width = canvas.clientWidth || 320;
+        canvas.height = canvas.clientHeight || 500;
+        const ctx = canvas.getContext('2d');
+        const colors = ['#ff4b6e','#ffd93d','#6bcb77','#4d96ff','#ff922b','#cc5de8'];
+        _confettiParticles = Array.from({length: 90}, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            r: 4 + Math.random() * 6,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            vx: (Math.random() - 0.5) * 3,
+            vy: 2 + Math.random() * 4,
+            angle: Math.random() * Math.PI * 2,
+            spin: (Math.random() - 0.5) * 0.15,
+        }));
+
+        function loop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            _confettiParticles.forEach(p => {
+                p.x += p.vx; p.y += p.vy; p.angle += p.spin;
+                if (p.y > canvas.height) { p.y = -10; p.x = Math.random() * canvas.width; }
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.angle);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 1.6);
+                ctx.restore();
+            });
+            _confettiRaf = requestAnimationFrame(loop);
+        }
+        _confettiRaf = requestAnimationFrame(loop);
+    }
+
+    function stopConfetti() {
+        if (_confettiRaf) { cancelAnimationFrame(_confettiRaf); _confettiRaf = null; }
+        const canvas = document.getElementById('ar-confetti-canvas');
+        if (canvas) canvas.classList.add('hidden');
+        _confettiParticles = [];
+    }
+
+    function showChallengeComplete() {
+        const xp = 10 + arRepCount * 2 + 50; // base + per-rep + challenge bonus
+        const m = Math.floor(arResultDuration / 60).toString();
+        const s = (arResultDuration % 60).toString().padStart(2, '0');
+
+        const repsEl = document.getElementById('ar-cc-reps');
+        const durEl  = document.getElementById('ar-cc-dur');
+        const xpEl   = document.getElementById('ar-cc-xp');
+        if (repsEl) repsEl.textContent = arRepCount;
+        if (durEl)  durEl.textContent  = `${m}:${s}`;
+        if (xpEl)   xpEl.textContent   = `+${xp}`;
+
+        document.getElementById('ar-challenge-complete')?.classList.remove('hidden');
+        startConfetti();
+        if (navigator.vibrate) navigator.vibrate([100, 80, 100, 80, 300]);
+    }
+
+    function arCCSaveToCamera() {
+        if (arResultBlob) {
+            const url = URL.createObjectURL(arResultBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `calalevel_challenge_${Date.now()}.webm`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+        }
+        _arMarkChallengeComplete();
+        closeArenaRecord();
+        showToast('Video lagret', `+${10 + arRepCount * 2 + 50} XP`);
+    }
+
+    function arCCDone() {
+        _arMarkChallengeComplete();
+        closeArenaRecord();
+        showToast('Challenge fullført!', `+${10 + arRepCount * 2 + 50} XP`);
+    }
+
+    function _arMarkChallengeComplete() {
+        const xp = 10 + arRepCount * 2 + 50;
+        state.data.userProfile.xp += xp;
+        state.data.userProfile.stats.workouts += 1;
+        state.data.userProfile.stats.reps += arRepCount;
+        if (arChallengeLock) {
+            const ch = state.data.challenges.find(c => c.id === arChallengeLock.challengeId);
+            if (ch) ch.status = 'Completed';
+            arChallengeLock = null;
+        }
+        checkLevelUp();
+        saveState();
+        renderProfile();
+        renderBattles();
     }
 
     // ---- Arena Recording ----
@@ -1317,6 +1431,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showArenaResult() {
+        // Route to challenge complete screen if challenge target was met
+        if (arChallengeLock && arRepCount >= arChallengeLock.target) {
+            showChallengeComplete();
+            return;
+        }
+
         const xp = 10 + arRepCount * 2;
         const m = Math.floor(arResultDuration / 60).toString();
         const s = (arResultDuration % 60).toString().padStart(2, '0');
@@ -1414,8 +1534,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const preview = document.getElementById('ar-preview');
         if (preview) preview.srcObject = null;
         document.getElementById('ar-result-overlay')?.classList.add('hidden');
+        document.getElementById('ar-challenge-complete')?.classList.add('hidden');
         document.getElementById('ar-manual-rep')?.classList.add('hidden');
         document.getElementById('ar-record-inner')?.classList.remove('recording');
+        stopConfetti();
         arIsRecording = false;
         arChallengeLock = null;
         showPage('community');
@@ -1826,14 +1948,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ============================================================
 
-    renderBattles();
-    initArena();
+    try { renderBattles(); } catch(e) { console.error('[Init] renderBattles failed:', e); }
+    try { initArena(); } catch(e) { console.error('[Init] initArena failed:', e); }
 
     // User Profile Implementation
     // Using state.data.userProfile which is loaded or default
 
     function renderProfile() {
         const userProfile = state.data.userProfile;
+        if (!userProfile) return;
+        // Ensure stats object always exists with defaults
+        if (!userProfile.stats) userProfile.stats = { workouts: 0, reps: 0, streak: 0, rank: 999 };
+        if (typeof userProfile.stats.reps     !== 'number') userProfile.stats.reps = 0;
+        if (typeof userProfile.stats.workouts !== 'number') userProfile.stats.workouts = 0;
+        if (typeof userProfile.stats.streak   !== 'number') userProfile.stats.streak = 0;
+        if (typeof userProfile.stats.rank     !== 'number') userProfile.stats.rank = 999;
+        if (typeof userProfile.xp             !== 'number') userProfile.xp = 0;
+        if (typeof userProfile.level          !== 'number') userProfile.level = 0;
 
         // Render Header
         const rankTitleEl = document.getElementById('profile-rank-title');
@@ -1846,8 +1977,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const xpNeeded = nextLvlXp - currentLevelXp;
             const xpPercent = userProfile.level >= levelThresholds.length - 1 ? 100 : Math.min(100, (xpIntoLevel / xpNeeded) * 100);
 
-            document.getElementById('profile-xp-text').textContent = `${userProfile.xp.toLocaleString()} / ${nextLvlXp.toLocaleString()} XP`;
-            document.getElementById('profile-xp-bar').style.width = `${xpPercent}%`;
+            const xpTextEl = document.getElementById('profile-xp-text');
+            const xpBarEl  = document.getElementById('profile-xp-bar');
+            if (xpTextEl) xpTextEl.textContent = `${userProfile.xp.toLocaleString()} / ${(nextLvlXp || 0).toLocaleString()} XP`;
+            if (xpBarEl)  xpBarEl.style.width  = `${xpPercent}%`;
 
             // Update level badge circle
             const levelBadge = document.querySelector('.level-badge-circle');
@@ -1858,10 +1991,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (xpInfoSpans.length >= 1) xpInfoSpans[0].textContent = `Level ${userProfile.level}`;
 
             // Render Stats
-            document.getElementById('stat-workouts').textContent = userProfile.stats.workouts;
-            document.getElementById('stat-reps').textContent = userProfile.stats.reps.toLocaleString();
-            document.getElementById('stat-streak').textContent = userProfile.stats.streak;
-            document.getElementById('stat-rank').textContent = `#${userProfile.stats.rank}`;
+            const wEl = document.getElementById('stat-workouts');
+            const rEl = document.getElementById('stat-reps');
+            const sEl = document.getElementById('stat-streak');
+            const rkEl = document.getElementById('stat-rank');
+            if (wEl)  wEl.textContent  = userProfile.stats.workouts;
+            if (rEl)  rEl.textContent  = userProfile.stats.reps.toLocaleString();
+            if (sEl)  sEl.textContent  = userProfile.stats.streak;
+            if (rkEl) rkEl.textContent = `#${userProfile.stats.rank}`;
 
             // Render Activity
             const activityList = document.getElementById('activity-list');
@@ -1899,9 +2036,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Initialize Profile
-    renderProfile();
-    renderBodyLogger('body-logger-container');
-    renderProfileSettings('profile-settings-container');
+    try { renderProfile(); } catch(e) { console.error('[Init] renderProfile failed:', e); }
+    try { renderBodyLogger('body-logger-container'); } catch(e) { console.error('[Init] renderBodyLogger failed:', e); }
+    try { renderProfileSettings('profile-settings-container'); } catch(e) { console.error('[Init] renderProfileSettings failed:', e); }
 
 
 
@@ -2310,12 +2447,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ---- Train tabs (Treningsøkt / Program) ----
+    console.log('[Train] Wiring train-tab buttons, count:', document.querySelectorAll('.train-tab').length);
     document.querySelectorAll('.train-tab').forEach(btn => {
         btn.addEventListener('click', () => {
+            console.log('[Train] Tab clicked:', btn.getAttribute('data-train-tab'));
             document.querySelectorAll('.train-tab').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.train-tab-content').forEach(c => c.classList.remove('active'));
             btn.classList.add('active');
-            document.getElementById('train-tab-' + btn.getAttribute('data-train-tab')).classList.add('active');
+            const tabId = 'train-tab-' + btn.getAttribute('data-train-tab');
+            const tabEl = document.getElementById(tabId);
+            if (tabEl) tabEl.classList.add('active');
         });
     });
 
@@ -2471,9 +2612,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Initialize Programs
-    renderWeeklySchedule();
-    renderLibrary();
-    renderSavedPrograms();
+    try { renderWeeklySchedule(); } catch(e) { console.error('[Init] renderWeeklySchedule failed:', e); }
+    try { renderLibrary(); } catch(e) { console.error('[Init] renderLibrary failed:', e); }
+    try { renderSavedPrograms(); } catch(e) { console.error('[Init] renderSavedPrograms failed:', e); }
 
     // Training Flow Implementation
     const workoutData = {
@@ -2661,7 +2802,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Start button
+    console.log('[Train] Wiring qw-start-btn');
     document.getElementById('qw-start-btn')?.addEventListener('click', () => {
+        console.log('[Train] Start Workout clicked, duration:', qwDuration, 'focus:', qwFocus);
         startQuickWorkout(qwDuration, qwFocus);
     });
 

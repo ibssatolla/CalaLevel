@@ -260,6 +260,35 @@
                         <button class="ar-save-only-btn" id="ar-save-btn">Save only</button>
                     </div>
                 </div>
+
+                <!-- Confetti canvas (challenge celebration) -->
+                <canvas id="ar-confetti-canvas" class="ar-confetti-canvas hidden"></canvas>
+
+                <!-- Challenge completion overlay -->
+                <div class="ar-challenge-complete hidden" id="ar-challenge-complete">
+                    <div class="ar-cc-card glass-card">
+                        <div class="ar-cc-trophy">🏆</div>
+                        <div class="ar-cc-title">Challenge Fullført!</div>
+                        <div class="ar-cc-congrats">Gratulerer! 🎉</div>
+                        <div class="ar-cc-stats">
+                            <div class="ar-cc-stat">
+                                <div class="ar-cc-val" id="ar-cc-reps">0</div>
+                                <div class="ar-cc-lbl">Reps</div>
+                            </div>
+                            <div class="ar-cc-stat">
+                                <div class="ar-cc-val" id="ar-cc-dur">0:00</div>
+                                <div class="ar-cc-lbl">Tid</div>
+                            </div>
+                            <div class="ar-cc-stat">
+                                <div class="ar-cc-val" id="ar-cc-xp">+0</div>
+                                <div class="ar-cc-lbl">XP</div>
+                            </div>
+                        </div>
+                        <button class="cta-button primary full-width" id="ar-cc-post-btn">Publiser</button>
+                        <button class="ar-cc-save-btn" id="ar-cc-save-btn">Lagre video</button>
+                        <button class="ar-cc-done-btn" id="ar-cc-done-btn">Ferdig</button>
+                    </div>
+                </div>
             </section>
 
             <!-- Arena Create Post Modal -->
