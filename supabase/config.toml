@@ -1,0 +1,16 @@
+# Local Supabase CLI settings. Written by hand for Phase 3.3 and NOT checked with the CLI.
+# Hosted projects ignore this file: set the same options in the dashboard (see docs/SUPABASE-SETUP.md).
+project_id = "calalevel"
+
+[auth]
+site_url = "http://localhost:8080"
+additional_redirect_urls = ["http://localhost:8080/", "http://127.0.0.1:8080/"]
+enable_signup = true
+enable_anonymous_sign_ins = false
+minimum_password_length = 8
+password_requirements = "lower_upper_letters_digits"
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+double_confirm_changes = true

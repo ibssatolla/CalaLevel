@@ -1,0 +1,1738 @@
+[
+ {
+  "mode": "live",
+  "viewport": "320x568",
+  "screens": {
+   "home": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 2127
+   },
+   "quests": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1348
+   },
+   "train": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 662
+   },
+   "skills": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1203
+   },
+   "community": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 659
+   },
+   "map": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 648
+   },
+   "profile": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 4541
+   }
+  },
+  "modals": {
+   "history-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 458,
+    "bottom": 568,
+    "innerH": 568
+   },
+   "confirm-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 406,
+    "bottom": 568,
+    "innerH": 568
+   },
+   "levelup-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 138,
+    "bottom": 430,
+    "innerH": 568
+   }
+  },
+  "workout": {
+   "overflowX": false,
+   "footerVisible": true,
+   "topVisible": true,
+   "small": []
+  },
+  "errors": [],
+  "failedRequests": [
+   "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/8/4.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/8/3.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/7/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/9/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/8/5.png net::ERR_FAILED",
+   "https://c.basemaps.cartocdn.com/dark_all/4/7/3.png net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/9/3.png net::ERR_FAILED"
+  ]
+ },
+ {
+  "mode": "live",
+  "viewport": "390x844",
+  "screens": {
+   "home": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 2012
+   },
+   "quests": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1191
+   },
+   "train": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 594
+   },
+   "skills": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1179
+   },
+   "community": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 637
+   },
+   "map": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 748
+   },
+   "profile": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 4386
+   }
+  },
+  "modals": {
+   "history-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 734,
+    "bottom": 844,
+    "innerH": 844
+   },
+   "confirm-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 682,
+    "bottom": 844,
+    "innerH": 844
+   },
+   "levelup-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 276,
+    "bottom": 568,
+    "innerH": 844
+   }
+  },
+  "workout": {
+   "overflowX": false,
+   "footerVisible": true,
+   "topVisible": true,
+   "small": []
+  },
+  "errors": [],
+  "failedRequests": [
+   "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/8/4.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/8/3.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/7/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/9/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/8/5.png net::ERR_FAILED",
+   "https://c.basemaps.cartocdn.com/dark_all/4/7/3.png net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/9/3.png net::ERR_FAILED"
+  ]
+ },
+ {
+  "mode": "live",
+  "viewport": "375x812",
+  "screens": {
+   "home": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 2030
+   },
+   "quests": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1254
+   },
+   "train": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 637
+   },
+   "skills": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1179
+   },
+   "community": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 637
+   },
+   "map": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 728
+   },
+   "profile": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 4451
+   }
+  },
+  "modals": {
+   "history-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 702,
+    "bottom": 812,
+    "innerH": 812
+   },
+   "confirm-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 650,
+    "bottom": 812,
+    "innerH": 812
+   },
+   "levelup-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 260,
+    "bottom": 552,
+    "innerH": 812
+   }
+  },
+  "workout": {
+   "overflowX": false,
+   "footerVisible": true,
+   "topVisible": true,
+   "small": []
+  },
+  "errors": [],
+  "failedRequests": [
+   "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/8/4.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/8/3.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/7/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/9/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/8/5.png net::ERR_FAILED",
+   "https://c.basemaps.cartocdn.com/dark_all/4/7/3.png net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/9/3.png net::ERR_FAILED"
+  ]
+ },
+ {
+  "mode": "live",
+  "viewport": "430x932",
+  "screens": {
+   "home": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 2021
+   },
+   "quests": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1192
+   },
+   "train": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 595
+   },
+   "skills": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1180
+   },
+   "community": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 639
+   },
+   "map": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 806
+   },
+   "profile": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 4230
+   }
+  },
+  "modals": {
+   "history-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 822,
+    "bottom": 932,
+    "innerH": 932
+   },
+   "confirm-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 770,
+    "bottom": 932,
+    "innerH": 932
+   },
+   "levelup-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 319,
+    "bottom": 613,
+    "innerH": 932
+   }
+  },
+  "workout": {
+   "overflowX": false,
+   "footerVisible": true,
+   "topVisible": true,
+   "small": []
+  },
+  "errors": [],
+  "failedRequests": [
+   "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/8/4.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/8/3.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/7/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/9/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/8/5.png net::ERR_FAILED",
+   "https://c.basemaps.cartocdn.com/dark_all/4/7/3.png net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/9/3.png net::ERR_FAILED"
+  ]
+ },
+ {
+  "mode": "live",
+  "viewport": "768x1024",
+  "screens": {
+   "home": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1812
+   },
+   "quests": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 930
+   },
+   "train": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 654
+   },
+   "skills": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1060
+   },
+   "community": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 618
+   },
+   "map": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 831
+   },
+   "profile": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 3487
+   }
+  },
+  "modals": {
+   "history-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 914,
+    "bottom": 1024,
+    "innerH": 1024
+   },
+   "confirm-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 862,
+    "bottom": 1024,
+    "innerH": 1024
+   },
+   "levelup-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 358,
+    "bottom": 666,
+    "innerH": 1024
+   }
+  },
+  "workout": {
+   "overflowX": false,
+   "footerVisible": true,
+   "topVisible": true,
+   "small": []
+  },
+  "errors": [],
+  "failedRequests": [
+   "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/8/4.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/8/3.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/7/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/9/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/8/5.png net::ERR_FAILED",
+   "https://c.basemaps.cartocdn.com/dark_all/4/7/3.png net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/9/3.png net::ERR_FAILED"
+  ]
+ },
+ {
+  "mode": "live",
+  "viewport": "1440x900",
+  "screens": {
+   "home": {
+    "wide": [],
+    "small": [
+     ".active 73x38 \"Dashboard\"",
+     "a 47x38 \"Quests\"",
+     "a 65x38 \"Programs\"",
+     "a 54x38 \"Training\"",
+     "a 35x38 \"Skills\"",
+     "a 29x38 \"Map\"",
+     "a 77x38 \"Community\"",
+     "a 43x38 \"Profile\"",
+     ".btn.btn-primary 150x40 \"Start workout\"",
+     "#view-history-btn.btn.btn-ghost 107x40 \"History\"",
+     "#generate-program-btn.btn.btn-secondary 192x40 \"Generate new week\"",
+     ".chip.active 52x40 \"All\""
+    ],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": null,
+    "sectionHeight": 1358
+   },
+   "quests": {
+    "wide": [],
+    "small": [
+     "a 73x38 \"Dashboard\"",
+     ".active 47x38 \"Quests\"",
+     "a 65x38 \"Programs\"",
+     "a 54x38 \"Training\"",
+     "a 35x38 \"Skills\"",
+     "a 29x38 \"Map\"",
+     "a 77x38 \"Community\"",
+     "a 43x38 \"Profile\"",
+     ".btn.btn-primary 150x40 \"Start workout\"",
+     "#view-history-btn.btn.btn-ghost 107x40 \"History\"",
+     "#generate-program-btn.btn.btn-secondary 192x40 \"Generate new week\"",
+     ".chip.active 52x40 \"All\""
+    ],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": null,
+    "sectionHeight": 905
+   },
+   "train": {
+    "wide": [],
+    "small": [
+     "a 73x38 \"Dashboard\"",
+     "a 47x38 \"Quests\"",
+     "a 65x38 \"Programs\"",
+     ".active 54x38 \"Training\"",
+     "a 35x38 \"Skills\"",
+     "a 29x38 \"Map\"",
+     "a 77x38 \"Community\"",
+     "a 43x38 \"Profile\"",
+     ".btn.btn-primary 150x40 \"Start workout\"",
+     "#view-history-btn.btn.btn-ghost 107x40 \"History\"",
+     "#generate-program-btn.btn.btn-secondary 192x40 \"Generate new week\"",
+     ".chip.active 52x40 \"All\""
+    ],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": null,
+    "sectionHeight": 366
+   },
+   "skills": {
+    "wide": [],
+    "small": [
+     "a 73x38 \"Dashboard\"",
+     "a 47x38 \"Quests\"",
+     "a 65x38 \"Programs\"",
+     "a 54x38 \"Training\"",
+     ".active 35x38 \"Skills\"",
+     "a 29x38 \"Map\"",
+     "a 77x38 \"Community\"",
+     "a 43x38 \"Profile\"",
+     ".btn.btn-primary 150x40 \"Start workout\"",
+     "#view-history-btn.btn.btn-ghost 107x40 \"History\"",
+     "#generate-program-btn.btn.btn-secondary 192x40 \"Generate new week\"",
+     ".chip.active 52x40 \"All\""
+    ],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": null,
+    "sectionHeight": 735
+   },
+   "community": {
+    "wide": [],
+    "small": [
+     "a 73x38 \"Dashboard\"",
+     "a 47x38 \"Quests\"",
+     "a 65x38 \"Programs\"",
+     "a 54x38 \"Training\"",
+     "a 35x38 \"Skills\"",
+     "a 29x38 \"Map\"",
+     ".active 77x38 \"Community\"",
+     "a 43x38 \"Profile\"",
+     ".btn.btn-primary 150x40 \"Start workout\"",
+     "#view-history-btn.btn.btn-ghost 107x40 \"History\"",
+     "#generate-program-btn.btn.btn-secondary 192x40 \"Generate new week\"",
+     ".chip.active 52x40 \"All\""
+    ],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": null,
+    "sectionHeight": 443
+   },
+   "map": {
+    "wide": [],
+    "small": [
+     "a 73x38 \"Dashboard\"",
+     "a 47x38 \"Quests\"",
+     "a 65x38 \"Programs\"",
+     "a 54x38 \"Training\"",
+     "a 35x38 \"Skills\"",
+     ".active 29x38 \"Map\"",
+     "a 77x38 \"Community\"",
+     "a 43x38 \"Profile\"",
+     ".btn.btn-primary 150x40 \"Start workout\"",
+     "#view-history-btn.btn.btn-ghost 107x40 \"History\"",
+     "#generate-program-btn.btn.btn-secondary 192x40 \"Generate new week\"",
+     ".chip.active 52x40 \"All\""
+    ],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": null,
+    "sectionHeight": 823
+   },
+   "profile": {
+    "wide": [],
+    "small": [
+     "a 73x38 \"Dashboard\"",
+     "a 47x38 \"Quests\"",
+     "a 65x38 \"Programs\"",
+     "a 54x38 \"Training\"",
+     "a 35x38 \"Skills\"",
+     "a 29x38 \"Map\"",
+     "a 77x38 \"Community\"",
+     ".active 43x38 \"Profile\"",
+     ".btn.btn-primary 150x40 \"Start workout\"",
+     "#view-history-btn.btn.btn-ghost 107x40 \"History\"",
+     "#generate-program-btn.btn.btn-secondary 192x40 \"Generate new week\"",
+     ".chip.active 52x40 \"All\""
+    ],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": null,
+    "sectionHeight": 2699
+   }
+  },
+  "modals": {
+   "history-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 395,
+    "bottom": 505,
+    "innerH": 900
+   },
+   "confirm-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 369,
+    "bottom": 531,
+    "innerH": 900
+   },
+   "levelup-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 290,
+    "bottom": 610,
+    "innerH": 900
+   }
+  },
+  "workout": {
+   "overflowX": false,
+   "footerVisible": true,
+   "topVisible": true,
+   "small": []
+  },
+  "errors": [],
+  "failedRequests": [
+   "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/8/4.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/8/3.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/7/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/9/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/8/5.png net::ERR_FAILED",
+   "https://c.basemaps.cartocdn.com/dark_all/4/7/3.png net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/9/3.png net::ERR_FAILED"
+  ]
+ },
+ {
+  "mode": "demo",
+  "viewport": "320x568",
+  "screens": {
+   "home": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 2259
+   },
+   "quests": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1348
+   },
+   "train": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 662
+   },
+   "skills": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1170
+   },
+   "community": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1256
+   },
+   "map": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 667
+   },
+   "profile": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 4458
+   }
+  },
+  "modals": {
+   "history-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 458,
+    "bottom": 568,
+    "innerH": 568
+   },
+   "confirm-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 406,
+    "bottom": 568,
+    "innerH": 568
+   },
+   "levelup-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 138,
+    "bottom": 430,
+    "innerH": 568
+   }
+  },
+  "workout": {
+   "overflowX": false,
+   "footerVisible": true,
+   "topVisible": true,
+   "small": []
+  },
+  "errors": [],
+  "failedRequests": [
+   "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/8/4.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/8/3.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/7/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/9/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/8/5.png net::ERR_FAILED",
+   "https://c.basemaps.cartocdn.com/dark_all/4/7/3.png net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/9/3.png net::ERR_FAILED"
+  ]
+ },
+ {
+  "mode": "demo",
+  "viewport": "390x844",
+  "screens": {
+   "home": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 2155
+   },
+   "quests": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1259
+   },
+   "train": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 594
+   },
+   "skills": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1145
+   },
+   "community": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1231
+   },
+   "map": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 748
+   },
+   "profile": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 4287
+   }
+  },
+  "modals": {
+   "history-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 734,
+    "bottom": 844,
+    "innerH": 844
+   },
+   "confirm-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 682,
+    "bottom": 844,
+    "innerH": 844
+   },
+   "levelup-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 276,
+    "bottom": 568,
+    "innerH": 844
+   }
+  },
+  "workout": {
+   "overflowX": false,
+   "footerVisible": true,
+   "topVisible": true,
+   "small": []
+  },
+  "errors": [],
+  "failedRequests": [
+   "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/8/4.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/8/3.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/7/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/9/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/8/5.png net::ERR_FAILED",
+   "https://c.basemaps.cartocdn.com/dark_all/4/7/3.png net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/9/3.png net::ERR_FAILED"
+  ]
+ },
+ {
+  "mode": "demo",
+  "viewport": "375x812",
+  "screens": {
+   "home": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 2151
+   },
+   "quests": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1344
+   },
+   "train": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 637
+   },
+   "skills": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1145
+   },
+   "community": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1231
+   },
+   "map": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 728
+   },
+   "profile": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 4337
+   }
+  },
+  "modals": {
+   "history-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 702,
+    "bottom": 812,
+    "innerH": 812
+   },
+   "confirm-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 650,
+    "bottom": 812,
+    "innerH": 812
+   },
+   "levelup-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 260,
+    "bottom": 552,
+    "innerH": 812
+   }
+  },
+  "workout": {
+   "overflowX": false,
+   "footerVisible": true,
+   "topVisible": true,
+   "small": []
+  },
+  "errors": [],
+  "failedRequests": [
+   "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/8/4.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/8/3.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/7/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/9/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/8/5.png net::ERR_FAILED",
+   "https://c.basemaps.cartocdn.com/dark_all/4/7/3.png net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/9/3.png net::ERR_FAILED"
+  ]
+ },
+ {
+  "mode": "demo",
+  "viewport": "430x932",
+  "screens": {
+   "home": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 2120
+   },
+   "quests": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1171
+   },
+   "train": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 595
+   },
+   "skills": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1147
+   },
+   "community": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1233
+   },
+   "map": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 806
+   },
+   "profile": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 4218
+   }
+  },
+  "modals": {
+   "history-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 822,
+    "bottom": 932,
+    "innerH": 932
+   },
+   "confirm-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 770,
+    "bottom": 932,
+    "innerH": 932
+   },
+   "levelup-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 319,
+    "bottom": 613,
+    "innerH": 932
+   }
+  },
+  "workout": {
+   "overflowX": false,
+   "footerVisible": true,
+   "topVisible": true,
+   "small": []
+  },
+  "errors": [],
+  "failedRequests": [
+   "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/8/4.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/8/3.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/7/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/9/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/8/5.png net::ERR_FAILED",
+   "https://c.basemaps.cartocdn.com/dark_all/4/7/3.png net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/9/3.png net::ERR_FAILED"
+  ]
+ },
+ {
+  "mode": "demo",
+  "viewport": "768x1024",
+  "screens": {
+   "home": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1900
+   },
+   "quests": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 972
+   },
+   "train": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 654
+   },
+   "skills": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1027
+   },
+   "community": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 1234
+   },
+   "map": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 831
+   },
+   "profile": {
+    "wide": [],
+    "small": [],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": {
+     "h": 64,
+     "bodyPad": 64
+    },
+    "sectionHeight": 3423
+   }
+  },
+  "modals": {
+   "history-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 914,
+    "bottom": 1024,
+    "innerH": 1024
+   },
+   "confirm-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 862,
+    "bottom": 1024,
+    "innerH": 1024
+   },
+   "levelup-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 358,
+    "bottom": 666,
+    "innerH": 1024
+   }
+  },
+  "workout": {
+   "overflowX": false,
+   "footerVisible": true,
+   "topVisible": true,
+   "small": []
+  },
+  "errors": [],
+  "failedRequests": [
+   "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/8/4.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/8/3.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/7/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/9/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/8/5.png net::ERR_FAILED",
+   "https://c.basemaps.cartocdn.com/dark_all/4/7/3.png net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/9/3.png net::ERR_FAILED"
+  ]
+ },
+ {
+  "mode": "demo",
+  "viewport": "1440x900",
+  "screens": {
+   "home": {
+    "wide": [],
+    "small": [
+     ".active 73x38 \"Dashboard\"",
+     "a 47x38 \"Quests\"",
+     "a 65x38 \"Programs\"",
+     "a 54x38 \"Training\"",
+     "a 35x38 \"Skills\"",
+     "a 29x38 \"Map\"",
+     "a 77x38 \"Community\"",
+     "a 43x38 \"Profile\"",
+     ".btn.btn-primary 150x40 \"Start workout\"",
+     "#exit-demo-btn.btn.btn-ghost 172x40 \"Back to my progress\"",
+     "#view-history-btn.btn.btn-ghost 107x40 \"History\"",
+     "#generate-program-btn.btn.btn-secondary 192x40 \"Generate new week\""
+    ],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": null,
+    "sectionHeight": 1346
+   },
+   "quests": {
+    "wide": [],
+    "small": [
+     "a 73x38 \"Dashboard\"",
+     ".active 47x38 \"Quests\"",
+     "a 65x38 \"Programs\"",
+     "a 54x38 \"Training\"",
+     "a 35x38 \"Skills\"",
+     "a 29x38 \"Map\"",
+     "a 77x38 \"Community\"",
+     "a 43x38 \"Profile\"",
+     ".btn.btn-primary 150x40 \"Start workout\"",
+     "#exit-demo-btn.btn.btn-ghost 172x40 \"Back to my progress\"",
+     "#view-history-btn.btn.btn-ghost 107x40 \"History\"",
+     "#generate-program-btn.btn.btn-secondary 192x40 \"Generate new week\""
+    ],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": null,
+    "sectionHeight": 905
+   },
+   "train": {
+    "wide": [],
+    "small": [
+     "a 73x38 \"Dashboard\"",
+     "a 47x38 \"Quests\"",
+     "a 65x38 \"Programs\"",
+     ".active 54x38 \"Training\"",
+     "a 35x38 \"Skills\"",
+     "a 29x38 \"Map\"",
+     "a 77x38 \"Community\"",
+     "a 43x38 \"Profile\"",
+     ".btn.btn-primary 150x40 \"Start workout\"",
+     "#exit-demo-btn.btn.btn-ghost 172x40 \"Back to my progress\"",
+     "#view-history-btn.btn.btn-ghost 107x40 \"History\"",
+     "#generate-program-btn.btn.btn-secondary 192x40 \"Generate new week\""
+    ],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": null,
+    "sectionHeight": 366
+   },
+   "skills": {
+    "wide": [],
+    "small": [
+     "a 73x38 \"Dashboard\"",
+     "a 47x38 \"Quests\"",
+     "a 65x38 \"Programs\"",
+     "a 54x38 \"Training\"",
+     ".active 35x38 \"Skills\"",
+     "a 29x38 \"Map\"",
+     "a 77x38 \"Community\"",
+     "a 43x38 \"Profile\"",
+     ".btn.btn-primary 150x40 \"Start workout\"",
+     "#exit-demo-btn.btn.btn-ghost 172x40 \"Back to my progress\"",
+     "#view-history-btn.btn.btn-ghost 107x40 \"History\"",
+     "#generate-program-btn.btn.btn-secondary 192x40 \"Generate new week\""
+    ],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": null,
+    "sectionHeight": 735
+   },
+   "community": {
+    "wide": [],
+    "small": [
+     "a 73x38 \"Dashboard\"",
+     "a 47x38 \"Quests\"",
+     "a 65x38 \"Programs\"",
+     "a 54x38 \"Training\"",
+     "a 35x38 \"Skills\"",
+     "a 29x38 \"Map\"",
+     ".active 77x38 \"Community\"",
+     "a 43x38 \"Profile\"",
+     ".btn.btn-primary 150x40 \"Start workout\"",
+     "#exit-demo-btn.btn.btn-ghost 172x40 \"Back to my progress\"",
+     "#view-history-btn.btn.btn-ghost 107x40 \"History\"",
+     "#generate-program-btn.btn.btn-secondary 192x40 \"Generate new week\""
+    ],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": null,
+    "sectionHeight": 759
+   },
+   "map": {
+    "wide": [],
+    "small": [
+     "a 73x38 \"Dashboard\"",
+     "a 47x38 \"Quests\"",
+     "a 65x38 \"Programs\"",
+     "a 54x38 \"Training\"",
+     "a 35x38 \"Skills\"",
+     ".active 29x38 \"Map\"",
+     "a 77x38 \"Community\"",
+     "a 43x38 \"Profile\"",
+     ".btn.btn-primary 150x40 \"Start workout\"",
+     "#exit-demo-btn.btn.btn-ghost 172x40 \"Back to my progress\"",
+     "#view-history-btn.btn.btn-ghost 107x40 \"History\"",
+     "#generate-program-btn.btn.btn-secondary 192x40 \"Generate new week\""
+    ],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": null,
+    "sectionHeight": 823
+   },
+   "profile": {
+    "wide": [],
+    "small": [
+     "a 73x38 \"Dashboard\"",
+     "a 47x38 \"Quests\"",
+     "a 65x38 \"Programs\"",
+     "a 54x38 \"Training\"",
+     "a 35x38 \"Skills\"",
+     "a 29x38 \"Map\"",
+     "a 77x38 \"Community\"",
+     ".active 43x38 \"Profile\"",
+     ".btn.btn-primary 150x40 \"Start workout\"",
+     "#exit-demo-btn.btn.btn-ghost 172x40 \"Back to my progress\"",
+     "#view-history-btn.btn.btn-ghost 107x40 \"History\"",
+     "#generate-program-btn.btn.btn-secondary 192x40 \"Generate new week\""
+    ],
+    "clipped": [],
+    "icons": [],
+    "scrollOverflow": false,
+    "tabbar": null,
+    "sectionHeight": 2529
+   }
+  },
+  "modals": {
+   "history-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 395,
+    "bottom": 505,
+    "innerH": 900
+   },
+   "confirm-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 369,
+    "bottom": 531,
+    "innerH": 900
+   },
+   "levelup-modal": {
+    "fitsW": true,
+    "fitsH": true,
+    "scrollsInside": false,
+    "top": 290,
+    "bottom": 610,
+    "innerH": 900
+   }
+  },
+  "workout": {
+   "overflowX": false,
+   "footerVisible": true,
+   "topVisible": true,
+   "small": []
+  },
+  "errors": [],
+  "failedRequests": [
+   "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/8/4.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/8/3.png net::ERR_FAILED",
+   "https://d.basemaps.cartocdn.com/dark_all/4/7/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/9/4.png net::ERR_FAILED",
+   "https://b.basemaps.cartocdn.com/dark_all/4/8/5.png net::ERR_FAILED",
+   "https://c.basemaps.cartocdn.com/dark_all/4/7/3.png net::ERR_FAILED",
+   "https://a.basemaps.cartocdn.com/dark_all/4/9/3.png net::ERR_FAILED"
+  ]
+ }
+]

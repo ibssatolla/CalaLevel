@@ -1,0 +1,11 @@
+# Secrets and local config. Never commit these.
+.env
+.env.*
+!.env.example
+# js/env.js is NOT ignored on purpose: it is public config, and a fresh clone needs the file to start.
+# Tooling
+node_modules/
+.history/
+supabase/.temp/
+supabase/.branches/
+tests/shots/

@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0d0f13">
+    <title>CalaLevel - Level Up Your Calisthenics</title>
+    <meta name="description"
+        content="Gamified calisthenics training app. Track your progress, earn XP, and level up your skills.">
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/flow.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <a class="skip-link" href="#main" data-skip>Skip to content</a>
+
+    <header class="site-header" id="site-header">
+        <nav class="site-nav" aria-label="Primary">
+            <div class="nav-left">
+                <button type="button" class="icon-btn nav-back hidden" id="nav-back" aria-label="Back"><i data-icon="chevron-left" data-size="22"></i></button>
+                <a class="logo" href="#home" aria-label="CalaLevel home">Cala<span class="logo-accent">Level</span></a>
+                <span class="nav-title hidden" id="nav-title"></span>
+            </div>
+            <ul class="nav-links" id="primary-nav">
+                <li><a href="#home" data-tab="home">Home</a></li>
+                <li><a href="#quests" data-tab="quests">Quests</a></li>
+                <li><a href="#train" data-tab="train">Train</a></li>
+                <li><a href="#discover" data-tab="discover">Discover</a></li>
+                <li><a href="#profile" data-tab="profile">Profile</a></li>
+            </ul>
+            <div class="nav-right">
+                <button type="button" class="btn btn-primary btn-sm nav-cta" data-action="start-training">
+                    <i data-icon="play" data-size="16"></i><span>Start workout</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <div id="demo-banner" class="demo-banner hidden" role="status">
+        <span><strong>Demo mode.</strong> Sample progress and simulated players. Your real progress is stored separately and is not changed.</span>
+        <button type="button" class="btn btn-ghost btn-sm" id="exit-demo-btn">Back to my progress</button>
+    </div>
+
+    <main id="main" tabindex="-1">
+        <div class="screen" id="screen-home" data-screen="home" data-tab="home" data-title="Home" hidden>
+            <!-- Dashboard -->
+            <section id="top" class="dash page-wrap" aria-labelledby="dash-title">
+                <div class="dash-head">
+                    <p class="eyebrow">Dashboard</p>
+                    <h1 id="dash-title">Master your body.<br><span class="text-gradient">Level up your life.</span></h1>
+                    <p class="section-sub hidden" id="welcome-note">New here? Finish your first workout to earn XP and start your streak.</p>
+                </div>
+
+                <div class="dash-grid">
+                    <!-- Level -->
+                    <article class="card card-level" aria-label="Level and rank">
+                        <div class="level-ring" id="dash-ring" role="img" aria-label="Level 1">
+                            <svg viewBox="0 0 120 120" aria-hidden="true">
+                                <defs>
+                                    <linearGradient id="ring-grad" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0" stop-color="#22e1ee" />
+                                        <stop offset="1" stop-color="#7c3aed" />
+                                    </linearGradient>
+                                </defs>
+                                <circle class="ring-track" cx="60" cy="60" r="52" />
+                                <circle class="ring-fill" id="dash-ring-fill" cx="60" cy="60" r="52" />
+                            </svg>
+                            <div class="ring-center">
+                                <span class="ring-label">Level</span>
+                                <span class="ring-number" id="dash-level-num">1</span>
+                            </div>
+                        </div>
+                        <div class="level-info">
+                            <div class="id-row" id="dash-identity">
+                                <span class="avatar-mini" id="dash-avatar" aria-hidden="true"></span>
+                                <span class="id-text"><strong id="dash-name">Athlete</strong><small id="dash-title-text">Newcomer</small></span>
+                            </div>
+                            <p class="eyebrow">Your rank</p>
+                            <h2 class="level-rank" id="dash-rank">Rookie</h2>
+                            <div class="xp-line">
+                                <span class="xp-current" id="dash-xp-text">0 / 1,000 XP</span>
+                                <span class="xp-next" id="dash-to-next">1,000 XP to level 2</span>
+                            </div>
+                            <div class="progress" role="progressbar" aria-label="Progress to next level" aria-valuemin="0"
+                                aria-valuemax="100" aria-valuenow="0" id="dash-xp-track">
+                                <div class="progress-fill" id="dash-xp-bar" style="width: 0%"></div>
+                            </div>
+                            <p class="streak-chip"><i data-icon="flame" data-size="16"></i><span id="dash-streak-chip">0 day streak</span></p>
+                        </div>
+                    </article>
+
+                    <!-- Today's objective -->
+                    <article class="card card-today" id="today-plan" aria-label="Today's training"></article>
+
+                    <!-- Daily quests -->
+                    <article class="card card-quests" aria-labelledby="quests-title">
+                        <div class="card-head">
+                            <h2 class="card-title" id="quests-title"><i data-icon="target" data-size="18"></i>Today's quests</h2>
+                            <a class="card-link" href="#quests">All quests <i data-icon="chevron-right" data-size="16"></i></a>
+                        </div>
+                        <p class="card-meta quest-meta-line" id="quests-meta"></p>
+                        <ul class="quest-list" id="quests-list"></ul>
+                    </article>
+
+                    <!-- Weekly streak -->
+                    <article class="card card-week" aria-labelledby="week-title">
+                        <div class="card-head">
+                            <h2 class="card-title" id="week-title"><i data-icon="flame" data-size="18"></i>Training streak</h2>
+                            <span class="card-meta" id="week-meta"></span>
+                        </div>
+                        <ol class="week-dots" id="week-streak" aria-label="Last 7 days"></ol>
+                    </article>
+
+                    <!-- Stats -->
+                    <article class="card card-stats" aria-labelledby="stats-title">
+                        <h2 class="card-title" id="stats-title"><i data-icon="chart" data-size="18"></i>Your stats</h2>
+                        <dl class="stat-grid">
+                            <div class="stat"><dt>Workouts</dt><dd id="stat-workouts">0</dd></div>
+                            <div class="stat"><dt>Total reps</dt><dd id="stat-reps">0</dd></div>
+                            <div class="stat"><dt>Day streak</dt><dd id="stat-streak">0</dd></div>
+                            <div class="stat"><dt id="stat-rank-label">Rank</dt><dd id="stat-rank">-</dd></div>
+                        </dl>
+                    </article>
+
+                    <!-- Skills -->
+                    <article class="card card-skills" aria-labelledby="dash-skills-title">
+                        <div class="card-head">
+                            <h2 class="card-title" id="dash-skills-title"><i data-icon="zap" data-size="18"></i>Skills</h2>
+                            <a class="card-link" href="#skills">Open tree <i data-icon="chevron-right" data-size="16"></i></a>
+                        </div>
+                        <div id="dash-skills" class="dash-skills"></div>
+                    </article>
+
+                    <!-- Progress core (desktop only, loaded lazily) -->
+                    <aside class="card card-core" id="core-card" aria-label="Progress core">
+                        <div class="core-stage" id="core-stage">
+                            <div class="core-fallback" id="core-fallback" aria-hidden="true">
+                                <span class="core-orb"><span id="core-level">1</span></span>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-ghost btn-sm core-load hidden" id="core-load-btn">Load 3D view</button>
+                        <span class="core-label">Progress core</span>
+                    </aside>
+                </div>
+            </section>
+        </div>
+
+        <div class="screen" id="screen-quests" data-screen="quests" data-tab="quests" data-title="Quests" hidden>
+            <!-- Quests -->
+            <section id="quests" class="section page-wrap" aria-labelledby="quests-section-title">
+                <header class="section-head section-head-row">
+                    <div>
+                        <p class="eyebrow">Daily quests</p>
+                        <h2 id="quests-section-title">Today's quests</h2>
+                        <p class="section-sub">Finish real workouts and the quests complete by themselves. Rest days are fine.</p>
+                    </div>
+                    <p class="reset-chip" id="quest-reset"><i data-icon="clock" data-size="16"></i><span>New quests at midnight</span></p>
+                </header>
+                <div class="quest-board" id="quest-board" aria-live="polite"></div>
+                <article class="card quest-history-card" aria-labelledby="quest-history-title">
+                    <h3 class="card-title" id="quest-history-title"><i data-icon="history" data-size="18"></i>Recent days</h3>
+                    <ul class="quest-history" id="quest-history"></ul>
+                </article>
+            </section>
+        </div>
+
+        <div class="screen" id="screen-train" data-screen="train" data-tab="train" data-title="Train" hidden>
+            <!-- Training -->
+            <section id="training" class="section page-wrap" aria-labelledby="training-title">
+                <header class="section-head">
+                    <p class="eyebrow">Train</p>
+                    <h2 id="training-title">Quick start</h2>
+                    <p class="section-sub">Pick a workout, log every set, earn XP.</p>
+                </header>
+                <div class="quickstart" role="group" aria-label="Quick start workouts">
+                    <button type="button" class="quick-card" data-type="push">
+                        <span class="quick-icon"><i data-icon="dumbbell" data-size="24"></i></span>
+                        <span class="quick-title">Push day</span>
+                        <span class="quick-meta" data-meta="push"></span>
+                    </button>
+                    <button type="button" class="quick-card" data-type="pull">
+                        <span class="quick-icon"><i data-icon="skill-pullup" data-size="24"></i></span>
+                        <span class="quick-title">Pull day</span>
+                        <span class="quick-meta" data-meta="pull"></span>
+                    </button>
+                    <button type="button" class="quick-card" data-type="full">
+                        <span class="quick-icon"><i data-icon="flame" data-size="24"></i></span>
+                        <span class="quick-title">Full body</span>
+                        <span class="quick-meta" data-meta="full"></span>
+                    </button>
+                    <button type="button" class="quick-card" data-type="mobility">
+                        <span class="quick-icon"><i data-icon="activity" data-size="24"></i></span>
+                        <span class="quick-title">Mobility</span>
+                        <span class="quick-meta" data-meta="mobility"></span>
+                    </button>
+                    <button type="button" class="quick-card" data-type="skill">
+                        <span class="quick-icon"><i data-icon="target" data-size="24"></i></span>
+                        <span class="quick-title">Skill practice</span>
+                        <span class="quick-meta" data-meta="skill"></span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Programs -->
+            <section id="programs" class="section page-wrap" aria-labelledby="programs-title">
+                <header class="section-head section-head-row">
+                    <div>
+                        <p class="eyebrow">Plan</p>
+                        <h2 id="programs-title">Programs</h2>
+                        <p class="section-sub">Your weekly plan. Select a day to start that workout.</p>
+                    </div>
+                    <div class="head-actions">
+                        <button type="button" id="view-history-btn" class="btn btn-ghost btn-sm"><i data-icon="history" data-size="16"></i>History</button>
+                        <button type="button" id="generate-program-btn" class="btn btn-secondary btn-sm"><i data-icon="refresh" data-size="16"></i>Generate new week</button>
+                    </div>
+                </header>
+
+                <div id="weekly-schedule" class="week-grid" role="list" aria-label="Weekly schedule"></div>
+
+                <a class="card card-link-tile library-tile" href="#library" data-route="library">
+                    <span class="tile-icon"><i data-icon="layers" data-size="22"></i></span>
+                    <h3>Exercise library</h3>
+                    <p>Browse every exercise by type and see how to do it.</p>
+                    <span class="tile-status" id="train-library-status"></span>
+                    <span class="tile-go" aria-hidden="true"><i data-icon="chevron-right" data-size="18"></i></span>
+                </a>
+            </section>
+        </div>
+
+        <div class="screen" id="screen-library" data-screen="library" data-tab="train" data-parent="train" data-title="Exercise library" hidden>
+            <section id="library" class="section page-wrap" aria-labelledby="library-title">
+                <header class="section-head">
+                    <p class="eyebrow">Train</p>
+                    <h2 id="library-title">Exercise library</h2>
+                    <p class="section-sub">Filter by type. Select an exercise to see how to do it.</p>
+                </header>
+                <div class="library">
+                    <div class="library-head">
+                        <div id="library-filters" class="chip-row" role="group" aria-label="Filter exercises by type"></div>
+                    </div>
+                    <div id="library-grid" class="library-grid"></div>
+                </div>
+            </section>
+        </div>
+
+        <div class="screen" id="screen-discover" data-screen="discover" data-tab="discover" data-title="Discover" hidden>
+            <!-- Discover hub -->
+            <section id="discover" class="section page-wrap" aria-labelledby="discover-title">
+                <header class="section-head">
+                    <p class="eyebrow">Discover</p>
+                    <h2 id="discover-title">Explore CalaLevel</h2>
+                    <p class="section-sub">Skills to unlock, rivals to challenge and parks to train at.</p>
+                </header>
+                <div class="feature-grid">
+                    <a class="card card-link-tile" href="#skills" data-route="skills">
+                        <span class="tile-icon"><i data-icon="zap" data-size="22"></i></span>
+                        <h3>Skill tree</h3>
+                        <p>Unlock moves like Front Lever and Planche through progressive overload paths.</p>
+                        <span class="tile-status" id="disc-skills-status"></span>
+                        <span class="tile-go" aria-hidden="true"><i data-icon="chevron-right" data-size="18"></i></span>
+                    </a>
+                    <a class="card card-link-tile" href="#arena" data-route="arena">
+                        <span class="tile-icon"><i data-icon="swords" data-size="22"></i></span>
+                        <h3>Battle Arena</h3>
+                        <p>Challenge friends to rep battles and park dominance wars.</p>
+                        <span class="tile-status" id="disc-arena-status"></span>
+                        <span class="tile-go" aria-hidden="true"><i data-icon="chevron-right" data-size="18"></i></span>
+                    </a>
+                    <a class="card card-link-tile" href="#map" data-route="map">
+                        <span class="tile-icon"><i data-icon="pin" data-size="22"></i></span>
+                        <h3>Park map</h3>
+                        <p>Find the best outdoor gyms and claim them for your team.</p>
+                        <span class="tile-status">Outdoor gyms across Norway</span>
+                        <span class="tile-go" aria-hidden="true"><i data-icon="chevron-right" data-size="18"></i></span>
+                    </a>
+                </div>
+            </section>
+        </div>
+
+        <div class="screen" id="screen-skills" data-screen="skills" data-tab="discover" data-parent="discover" data-title="Skill tree" hidden>
+            <!-- Skills -->
+            <section id="skills" class="section page-wrap" aria-labelledby="skills-title">
+                <header class="section-head section-head-row">
+                    <div>
+                        <p class="eyebrow">Progression</p>
+                        <h2 id="skills-title">Skill tree</h2>
+                        <p class="section-sub">Unlock new moves and master your body.</p>
+                    </div>
+                    <div class="skill-summary" aria-live="polite">
+                        <span id="skill-count" class="skill-count">0 / 0 unlocked</span>
+                        <span id="skill-xp-available" class="skill-xp"></span>
+                    </div>
+                </header>
+
+                <div class="skills-layout">
+                    <div class="tree-wrap">
+                        <div id="skill-tree-container" class="tree" role="group" aria-label="Skill tree"></div>
+                        <ul class="legend" aria-label="Legend">
+                            <li><span class="dot dot-mastered"></span>Mastered</li>
+                            <li><span class="dot dot-unlocked"></span>Unlocked</li>
+                            <li><span class="dot dot-available"></span>Ready to unlock</li>
+                            <li><span class="dot dot-locked"></span>Locked</li>
+                        </ul>
+                    </div>
+                    <aside id="skill-detail" class="card skill-detail" aria-live="polite">
+                        <p class="muted">Select a skill to see what it needs.</p>
+                    </aside>
+                </div>
+            </section>
+        </div>
+
+        <div class="screen" id="screen-arena" data-screen="arena" data-tab="discover" data-parent="discover" data-title="Battle Arena" hidden>
+            <!-- Community -->
+            <section id="community" class="section page-wrap" aria-labelledby="community-title">
+                <header class="section-head">
+                    <p class="eyebrow">Compete</p>
+                    <h2 id="community-title">Battle arena</h2>
+                    <p class="section-sub">Compete with friends and rivals.</p>
+                </header>
+
+                <div class="arena">
+                    <div class="arena-col">
+                        <h3 class="col-title">Battles <span class="badge badge-gold demo-tag hidden">Demo data</span></h3>
+                        <div id="challenges-list" class="challenge-list"></div>
+                    </div>
+                    <div class="arena-col">
+                        <h3 class="col-title"><span id="board-title">Leaderboard</span> <span class="badge badge-gold demo-tag hidden">Demo data</span></h3>
+                        <div id="my-rank-summary" class="rank-summary"></div>
+                        <ol id="leaderboard-list" class="leaderboard" aria-label="Leaderboard"></ol>
+                        <p class="data-note" id="board-note"></p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="screen" id="screen-map" data-screen="map" data-tab="discover" data-parent="discover" data-title="Park map" hidden>
+            <!-- Map -->
+            <section id="map" class="section page-wrap" aria-labelledby="map-title">
+                <header class="section-head">
+                    <p class="eyebrow">Explore</p>
+                    <h2 id="map-title">Park map</h2>
+                    <p class="section-sub">Discover local training spots.</p>
+                    <p class="data-note" id="map-note"><i data-icon="shield" data-size="14"></i><span>Park names, places and details are sample data and are not verified.</span></p>
+                </header>
+                <div class="map-wrap">
+                    <div class="map-filters hidden" role="group" aria-label="Filter parks">
+                        <button type="button" class="chip active" data-filter="all" aria-pressed="true">All parks</button>
+                        <button type="button" class="chip" data-filter="claimed" aria-pressed="false">Claimed</button>
+                        <button type="button" class="chip" data-filter="unclaimed" aria-pressed="false">Unclaimed</button>
+                        <button type="button" class="chip" data-filter="my-team" aria-pressed="false">My team</button>
+                    </div>
+                    <div id="map-container" class="map-container" role="application" aria-label="Map of training parks"></div>
+                    <div class="skeleton map-skeleton" id="map-skeleton" aria-hidden="true"></div>
+
+                    <div class="locate" id="locate-box">
+                        <button type="button" class="btn btn-ghost btn-sm" id="locate-btn" aria-pressed="false"><i data-icon="navigation" data-size="16"></i><span>Use my location</span></button>
+                        <p class="locate-status" id="locate-status" role="status" aria-live="polite">Location is off.</p>
+                    </div>
+
+                    <div id="park-details-card" class="park-card hidden" role="region" aria-label="Park details">
+                        <button type="button" id="close-card" class="icon-btn park-close" aria-label="Close park details"><i data-icon="x" data-size="20"></i></button>
+                        <h3 id="park-name">Park name</h3>
+                        <p id="park-desc">Description of the park.</p>
+                        <div class="park-meta">
+                            <span id="park-difficulty" class="badge">Intermediate</span>
+                            <span id="park-status" class="park-status">Active</span>
+                        </div>
+                        <div class="park-actions">
+                            <button type="button" id="park-train-btn" class="btn btn-primary btn-sm"><i data-icon="dumbbell" data-size="16"></i>Train here</button>
+                            <button type="button" id="navigate-btn" class="btn btn-ghost btn-sm"><i data-icon="navigation" data-size="16"></i>Navigate</button>
+                        </div>
+                    </div>
+
+                    <div id="navigation-controls" class="nav-card hidden">
+                        <div class="nav-info">
+                            <span class="nav-label">ETA</span>
+                            <span id="nav-eta" class="nav-value">-- min</span>
+                        </div>
+                        <div class="nav-actions">
+                            <button type="button" id="btn-continue-route" class="btn btn-primary btn-sm">Continue route</button>
+                            <button type="button" id="btn-cancel-route" class="btn btn-ghost btn-sm">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="screen" id="screen-profile" data-screen="profile" data-tab="profile" data-title="Profile" hidden>
+            <!-- Profile -->
+            <section id="profile" class="section page-wrap" aria-labelledby="profile-title">
+                <header class="section-head">
+                    <p class="eyebrow">You</p>
+                    <h2 id="profile-title">Profile</h2>
+                </header>
+
+                <div class="profile-grid">
+                    <article class="card profile-card" aria-labelledby="char-name">
+                        <div class="char-avatar" id="char-avatar" aria-hidden="true"></div>
+                        <div class="profile-id">
+                            <div class="char-name-row">
+                                <h3 id="char-name">Athlete</h3>
+                                <button type="button" class="icon-btn" id="char-rename-btn" aria-label="Rename character"><i data-icon="edit" data-size="18"></i></button>
+                            </div>
+                            <p class="char-title" id="char-title"></p>
+                            <div class="char-badges">
+                                <span class="rank-badge" id="char-rank-badge"><i data-icon="award" data-size="14"></i><span id="profile-rank-title">Rookie</span></span>
+                                <span class="badge" id="profile-level-label">Level 1</span>
+                            </div>
+                            <div class="xp-line">
+                                <span id="profile-xp-text">0 / 1,000 XP</span>
+                            </div>
+                            <div class="progress" role="progressbar" aria-label="Progress to next level" aria-valuemin="0"
+                                aria-valuemax="100" aria-valuenow="0" id="profile-xp-track">
+                                <div id="profile-xp-bar" class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span id="profile-level-circle" class="visually-hidden">1</span>
+                        </div>
+                    </article>
+
+                    <article class="card profile-attributes" aria-labelledby="attr-title">
+                        <h3 class="card-title" id="attr-title"><i data-icon="chart" data-size="18"></i>Attributes</h3>
+                        <ul class="attr-list" id="attr-list"></ul>
+                        <p class="data-note">Attributes grow only from sets and time you log. More training always helps, but each step needs a bit more.</p>
+                    </article>
+
+                    <article class="card profile-cosmetics" aria-labelledby="cos-title">
+                        <h3 class="card-title" id="cos-title"><i data-icon="sparkles" data-size="18"></i>Customize</h3>
+                        <div id="cosmetics" class="cosmetics"></div>
+                        <p class="data-note">Cosmetics change how your character looks. They never change XP or quests.</p>
+                    </article>
+
+                    <article class="card profile-account" id="profile-account-card" aria-labelledby="pa-title">
+                        <h3 class="card-title" id="pa-title"><i data-icon="settings" data-size="18"></i>Account</h3>
+                        <p class="data-text" id="pa-text"></p>
+                        <div class="data-actions"><a class="btn btn-secondary btn-sm" href="#preferences">Goals and preferences</a><a class="btn btn-secondary btn-sm" href="#account">Account settings</a></div>
+                    </article>
+
+                    <article class="card profile-setup" id="profile-setup-card" aria-labelledby="setup-title">
+                        <h3 class="card-title" id="setup-title"><i data-icon="target" data-size="18"></i>Training setup</h3>
+                        <p class="data-note">Quests use this to pick goals you can actually do.</p>
+                        <fieldset class="setup-field"><legend>Equipment you have</legend><div id="setup-equipment" class="setup-checks"></div></fieldset>
+                        <fieldset class="setup-field"><legend>Quest focus</legend><div id="setup-focus" class="chip-row" role="group" aria-label="Quest focus"></div></fieldset>
+                    </article>
+
+                    <article class="card profile-activity" aria-labelledby="activity-title">
+                        <h3 class="card-title" id="activity-title"><i data-icon="activity" data-size="18"></i>Recent activity</h3>
+                        <ul id="activity-list" class="activity-list"></ul>
+                    </article>
+
+                    <article class="card profile-achievements" aria-labelledby="ach-title">
+                        <div class="card-head">
+                            <h3 class="card-title" id="ach-title"><i data-icon="award" data-size="18"></i>Achievements</h3>
+                            <span class="card-meta" id="ach-meta"></span>
+                        </div>
+                        <ul id="achievements-grid" class="achievements"></ul>
+                    </article>
+
+                    <article class="card profile-data" aria-labelledby="data-title">
+                        <h3 class="card-title" id="data-title"><i data-icon="shield" data-size="18"></i>Your data</h3>
+                        <p class="data-text" id="data-text">Progress is saved in this browser only. Nothing is sent anywhere.</p>
+                        <div class="data-actions" id="data-actions"></div>
+                    </article>
+                </div>
+            </section>
+        </div>
+
+        <!-- ===== Account and onboarding screens. No header, no bottom bar (body.in-flow). ===== -->
+        <div class="screen flow" id="screen-boot" data-screen="boot" data-flow="1" data-title="Loading" hidden>
+            <div class="flow-wrap flow-center">
+                <p class="logo flow-logo">Cala<span class="logo-accent">Level</span></p>
+                <p class="flow-sub" role="status">Loading your account…</p>
+            </div>
+        </div>
+
+        <div class="screen flow" id="screen-setup" data-screen="setup" data-flow="1" data-title="Account service not set up" hidden>
+            <div class="flow-wrap">
+                <p class="logo flow-logo">Cala<span class="logo-accent">Level</span></p>
+                <h1 class="flow-title">Accounts are not set up yet</h1>
+                <p class="flow-sub">This copy of CalaLevel has no Supabase settings. Add your project URL and anon key to <code>.env</code>, run <code>node scripts/write-env.mjs</code> and reload. The steps are in <code>docs/SUPABASE-SETUP.md</code>.</p>
+                <p class="flow-sub">You can still look around in demo mode. It uses sample data and sends nothing anywhere.</p>
+                <button type="button" class="btn btn-primary btn-lg full" data-flow-action="demo">Open demo mode</button>
+            </div>
+        </div>
+
+        <div class="screen flow" id="screen-connect-error" data-screen="connect-error" data-flow="1" data-title="No connection" hidden>
+            <div class="flow-wrap">
+                <p class="logo flow-logo">Cala<span class="logo-accent">Level</span></p>
+                <h1 class="flow-title">Could not load your account</h1>
+                <p class="flow-sub" id="connect-error-text" role="alert">The server could not be reached.</p>
+                <p class="flow-sub">Your progress on this device is safe. Nothing was deleted.</p>
+                <button type="button" class="btn btn-primary btn-lg full" data-flow-action="retry">Try again</button>
+                <button type="button" class="btn btn-ghost btn-lg full" data-flow-action="logout">Log out</button>
+            </div>
+        </div>
+
+        <div class="screen flow" id="screen-welcome" data-screen="welcome" data-flow="1" data-title="Welcome" hidden>
+            <div class="flow-wrap">
+                <p class="logo flow-logo">Cala<span class="logo-accent">Level</span></p>
+                <h1 class="flow-title">Train like it is a game. Progress like it is real.</h1>
+                <p class="flow-sub">CalaLevel turns calisthenics into a role-playing game. Every set you log earns XP. XP raises your level and unlocks skills, ranks and looks for your character.</p>
+                <ul class="flow-points">
+                    <li><i data-icon="dumbbell" data-size="20"></i><span>Log workouts and earn XP for real effort</span></li>
+                    <li><i data-icon="target" data-size="20"></i><span>Daily quests that fit your goals and equipment</span></li>
+                    <li><i data-icon="shield" data-size="20"></i><span>Your progress is saved to your account on every device</span></li>
+                </ul>
+                <div class="flow-actions">
+                    <a class="btn btn-primary btn-lg full" href="#signup">Create account</a>
+                    <a class="btn btn-secondary btn-lg full" href="#login">Log in</a>
+                    <button type="button" class="btn btn-ghost btn-lg full" data-flow-action="demo">Try demo mode</button>
+                </div>
+                <p class="flow-notice hidden" id="welcome-notice" role="status"></p>
+                <p class="flow-legal"><a href="#terms">Terms</a> · <a href="#privacy">Privacy</a></p>
+            </div>
+        </div>
+
+        <div class="screen flow" id="screen-signup" data-screen="signup" data-flow="1" data-parent="welcome" data-title="Create account" hidden>
+            <div class="flow-wrap">
+                <button type="button" class="flow-back" data-flow-action="back"><i data-icon="chevron-left" data-size="20"></i>Back</button>
+                <h1 class="flow-title">Create your account</h1>
+                <form id="signup-form" class="flow-form" novalidate>
+                    <div class="field"><label for="su-email">Email</label><input id="su-email" name="email" type="email" inputmode="email" autocomplete="email" required maxlength="254" aria-describedby="su-email-err"><p class="field-err" id="su-email-err" role="alert"></p></div>
+                    <div class="field"><label for="su-pass">Password</label><input id="su-pass" name="password" type="password" autocomplete="new-password" required maxlength="72" aria-describedby="su-rules su-pass-err"><ul class="pass-rules" id="su-rules"></ul><p class="field-err" id="su-pass-err" role="alert"></p></div>
+                    <div class="field"><label for="su-pass2">Repeat password</label><input id="su-pass2" name="password2" type="password" autocomplete="new-password" required maxlength="72" aria-describedby="su-pass2-err"><p class="field-err" id="su-pass2-err" role="alert"></p></div>
+                    <div class="field"><label class="check"><input type="checkbox" id="su-terms"><span>I accept the <a href="#terms">Terms of use</a> and the <a href="#privacy">Privacy policy</a>.</span></label><p class="field-err" id="su-terms-err" role="alert"></p></div>
+                    <p class="form-err" id="signup-err" role="alert"></p>
+                    <button type="submit" class="btn btn-primary btn-lg full" id="signup-btn">Create account</button>
+                </form>
+                <p class="flow-sub flow-alt">Already have an account? <a href="#login">Log in</a></p>
+            </div>
+        </div>
+
+        <div class="screen flow" id="screen-login" data-screen="login" data-flow="1" data-parent="welcome" data-title="Log in" hidden>
+            <div class="flow-wrap">
+                <button type="button" class="flow-back" data-flow-action="back"><i data-icon="chevron-left" data-size="20"></i>Back</button>
+                <h1 class="flow-title">Log in</h1>
+                <p class="flow-notice hidden" id="login-notice" role="status"></p>
+                <form id="login-form" class="flow-form" novalidate>
+                    <div class="field"><label for="li-email">Email</label><input id="li-email" name="email" type="email" inputmode="email" autocomplete="email" required maxlength="254" aria-describedby="li-email-err"><p class="field-err" id="li-email-err" role="alert"></p></div>
+                    <div class="field"><label for="li-pass">Password</label><input id="li-pass" name="password" type="password" autocomplete="current-password" required maxlength="72" aria-describedby="li-pass-err"><p class="field-err" id="li-pass-err" role="alert"></p></div>
+                    <p class="form-err" id="login-err" role="alert"></p>
+                    <button type="submit" class="btn btn-primary btn-lg full" id="login-btn">Log in</button>
+                </form>
+                <p class="flow-sub flow-alt"><a href="#forgot">Forgot your password?</a></p>
+                <p class="flow-sub flow-alt">New here? <a href="#signup">Create account</a></p>
+            </div>
+        </div>
+
+        <div class="screen flow" id="screen-forgot" data-screen="forgot" data-flow="1" data-parent="login" data-title="Reset password" hidden>
+            <div class="flow-wrap">
+                <button type="button" class="flow-back" data-flow-action="back"><i data-icon="chevron-left" data-size="20"></i>Back</button>
+                <h1 class="flow-title">Reset your password</h1>
+                <p class="flow-sub">Enter your email. If an account exists, we send a link to choose a new password.</p>
+                <form id="forgot-form" class="flow-form" novalidate>
+                    <div class="field"><label for="fg-email">Email</label><input id="fg-email" name="email" type="email" inputmode="email" autocomplete="email" required maxlength="254" aria-describedby="fg-email-err"><p class="field-err" id="fg-email-err" role="alert"></p></div>
+                    <p class="form-err" id="forgot-err" role="alert"></p>
+                    <p class="flow-notice hidden" id="forgot-ok" role="status"></p>
+                    <button type="submit" class="btn btn-primary btn-lg full" id="forgot-btn">Send reset link</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="screen flow" id="screen-reset" data-screen="reset" data-flow="1" data-title="New password" hidden>
+            <div class="flow-wrap">
+                <h1 class="flow-title">Choose a new password</h1>
+                <form id="reset-form" class="flow-form" novalidate>
+                    <div class="field"><label for="rs-pass">New password</label><input id="rs-pass" name="password" type="password" autocomplete="new-password" required maxlength="72" aria-describedby="rs-rules rs-pass-err"><ul class="pass-rules" id="rs-rules"></ul><p class="field-err" id="rs-pass-err" role="alert"></p></div>
+                    <div class="field"><label for="rs-pass2">Repeat password</label><input id="rs-pass2" name="password2" type="password" autocomplete="new-password" required maxlength="72" aria-describedby="rs-pass2-err"><p class="field-err" id="rs-pass2-err" role="alert"></p></div>
+                    <p class="form-err" id="reset-err" role="alert"></p>
+                    <button type="submit" class="btn btn-primary btn-lg full" id="reset-btn">Save password</button>
+                </form>
+                <button type="button" class="btn btn-ghost btn-lg full" data-flow-action="logout">Cancel and log out</button>
+            </div>
+        </div>
+
+        <div class="screen flow" id="screen-verify" data-screen="verify" data-flow="1" data-parent="login" data-title="Verify your email" hidden>
+            <div class="flow-wrap">
+                <span class="flow-badge" aria-hidden="true"><i data-icon="mail" data-size="30"></i></span>
+                <h1 class="flow-title">Check your email</h1>
+                <p class="flow-sub">We sent a link to <strong id="verify-email">your address</strong>. Open it in this browser to verify your account. This page continues by itself.</p>
+                <p class="flow-sub">No email? Look in the spam folder, or send it again.</p>
+                <p class="form-err" id="verify-err" role="alert"></p>
+                <p class="flow-notice hidden" id="verify-ok" role="status"></p>
+                <button type="button" class="btn btn-primary btn-lg full" id="verify-resend" data-flow-action="resend">Send the email again</button>
+                <button type="button" class="btn btn-secondary btn-lg full" data-flow-action="check">I have verified my email</button>
+                <button type="button" class="btn btn-ghost btn-lg full" data-flow-action="to-login">Back to log in</button>
+            </div>
+        </div>
+
+        <div class="screen flow" id="screen-terms" data-screen="terms" data-flow="1" data-parent="welcome" data-title="Terms of use" hidden>
+            <div class="flow-wrap flow-doc">
+                <button type="button" class="flow-back" data-flow-action="back"><i data-icon="chevron-left" data-size="20"></i>Back</button>
+                <h1 class="flow-title">Terms of use</h1>
+                <p class="flow-notice">Draft text, version <span data-policy="terms"></span>. It has not been reviewed by a lawyer and must be before a public launch.</p>
+                <h2>Using CalaLevel</h2>
+                <p>CalaLevel is a training log with game elements. It is not medical advice. Train within your limits and talk to a doctor if you are unsure about an exercise.</p>
+                <h2>Your account</h2>
+                <p>You are responsible for your password and for what happens under your account. Give correct information. One person, one account.</p>
+                <h2>Your progress</h2>
+                <p>XP, levels and rewards are calculated by the service. Attempts to change them by other means can lead to a reset or removal of the account.</p>
+                <h2>Ending your account</h2>
+                <p>You can delete your account in Profile, Account. Deleting removes your data from the service.</p>
+            </div>
+        </div>
+
+        <div class="screen flow" id="screen-privacy" data-screen="privacy" data-flow="1" data-parent="welcome" data-title="Privacy policy" hidden>
+            <div class="flow-wrap flow-doc">
+                <button type="button" class="flow-back" data-flow-action="back"><i data-icon="chevron-left" data-size="20"></i>Back</button>
+                <h1 class="flow-title">Privacy policy</h1>
+                <p class="flow-notice">Draft text, version <span data-policy="privacy"></span>. It has not been reviewed by a lawyer and must be before a public launch.</p>
+                <h2>What is stored</h2>
+                <p>Your email address, your character (name and looks), your goals and training preferences, your workouts, quests, XP history and unlocks. Nothing else is collected by the app.</p>
+                <h2>Where it is stored</h2>
+                <p>In your Supabase project, protected by row level security so that only you can read your rows. A copy is kept in this browser so the app works offline.</p>
+                <h2>Passwords</h2>
+                <p>Passwords go straight to the authentication service. The app never stores them.</p>
+                <h2>Demo mode</h2>
+                <p>Demo mode uses sample data in this browser only and sends nothing to the service.</p>
+                <h2>Deleting your data</h2>
+                <p>Delete your account in Profile, Account. Your rows and your login are removed.</p>
+            </div>
+        </div>
+
+        <div class="screen flow" id="screen-ob-import" data-screen="ob-import" data-flow="1" data-title="Progress on this device" hidden>
+            <div class="flow-wrap">
+                <h1 class="flow-title">Progress found on this device</h1>
+                <p class="flow-sub" id="import-summary">This browser has progress from before accounts existed.</p>
+                <p class="flow-sub">You can add it to your new account once. It is never deleted from this device, and it never overwrites anything.</p>
+                <p class="form-err" id="import-err" role="alert"></p>
+                <button type="button" class="btn btn-primary btn-lg full" id="import-btn">Add it to my account</button>
+                <button type="button" class="btn btn-secondary btn-lg full" id="import-skip">Start fresh</button>
+                <p class="flow-sub">If you start fresh, the old data stays on this device. You can import it later from Profile, Account, as long as your account is still empty.</p>
+            </div>
+        </div>
+
+        <div class="screen flow" id="screen-ob-character" data-screen="ob-character" data-flow="1" data-title="Create your character" hidden>
+            <div class="flow-wrap">
+                <p class="step-count" data-step-label="1"></p>
+                <h1 class="flow-title">Create your character</h1>
+                <div class="char-preview" id="oc-preview" aria-live="polite"></div>
+                <form id="char-form" class="flow-form" novalidate>
+                    <div class="field"><label for="oc-name">Character name</label><input id="oc-name" name="name" type="text" maxlength="20" autocomplete="off" required aria-describedby="oc-name-err"><p class="field-err" id="oc-name-err" role="alert"></p></div>
+                    <div id="oc-options"></div>
+                    <p class="flow-sub small">You start at Level 1 with 0 XP. More looks unlock as you train.</p>
+                    <p class="form-err" id="char-err" role="alert"></p>
+                    <button type="submit" class="btn btn-primary btn-lg full" id="char-btn">Continue</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="screen flow" id="screen-ob-goals" data-screen="ob-goals" data-flow="1" data-title="Your goal" hidden>
+            <div class="flow-wrap">
+                <p class="step-count" data-step-label="2"></p>
+                <h1 class="flow-title">What do you want most?</h1>
+                <form id="goals-form" class="flow-form" novalidate>
+                    <fieldset class="opt-group"><legend>Main goal</legend><div class="opt-list" id="og-primary"></div></fieldset>
+                    <fieldset class="opt-group"><legend>Also nice to have (up to 3, optional)</legend><div class="opt-list" id="og-secondary"></div></fieldset>
+                    <p class="form-err" id="goals-err" role="alert"></p>
+                    <div class="flow-row"><button type="button" class="btn btn-ghost btn-lg" data-flow-action="ob-back">Back</button><button type="submit" class="btn btn-primary btn-lg" id="goals-btn">Continue</button></div>
+                </form>
+            </div>
+        </div>
+
+        <div class="screen flow" id="screen-ob-prefs" data-screen="ob-prefs" data-flow="1" data-title="Training preferences" hidden>
+            <div class="flow-wrap">
+                <p class="step-count" data-step-label="3"></p>
+                <h1 class="flow-title">How do you train?</h1>
+                <form id="prefs-form" class="flow-form" novalidate>
+                    <fieldset class="opt-group"><legend>Experience</legend><div class="opt-list" id="op-experience"></div></fieldset>
+                    <fieldset class="opt-group"><legend>Where you train</legend><div class="opt-list" id="op-environment"></div></fieldset>
+                    <fieldset class="opt-group"><legend>Equipment you can use</legend><div class="opt-list" id="op-equipment"></div></fieldset>
+                    <fieldset class="opt-group"><legend>Days per week</legend><div class="opt-list opt-inline" id="op-frequency"></div></fieldset>
+                    <fieldset class="opt-group"><legend>Minutes per workout</legend><div class="opt-list opt-inline" id="op-duration"></div></fieldset>
+                    <p class="form-err" id="prefs-err" role="alert"></p>
+                    <div class="flow-row"><button type="button" class="btn btn-ghost btn-lg" data-flow-action="ob-back">Back</button><button type="submit" class="btn btn-primary btn-lg" id="prefs-btn">Continue</button></div>
+                </form>
+            </div>
+        </div>
+
+        <div class="screen flow" id="screen-ob-done" data-screen="ob-done" data-flow="1" data-title="Ready" hidden>
+            <div class="flow-wrap">
+                <p class="step-count" data-step-label="4"></p>
+                <span class="flow-badge" aria-hidden="true"><i data-icon="trophy" data-size="30"></i></span>
+                <h1 class="flow-title">You are ready</h1>
+                <div class="char-preview" id="od-preview"></div>
+                <dl class="done-list" id="od-summary"></dl>
+                <p class="form-err" id="done-err" role="alert"></p>
+                <button type="button" class="btn btn-primary btn-lg full" id="done-btn">Start training</button>
+                <button type="button" class="btn btn-ghost btn-lg full" data-flow-action="ob-back">Back</button>
+            </div>
+        </div>
+
+        <!-- Profile: secondary screens (shown with the Profile tab and a back button) -->
+        <div class="screen" id="screen-account" data-screen="account" data-tab="profile" data-parent="profile" data-title="Account" hidden>
+            <section class="section page-wrap">
+                <header class="section-head"><h2>Account</h2></header>
+                <article class="card acct-card">
+                    <h3 class="card-title"><i data-icon="user" data-size="18"></i>Sign-in</h3>
+                    <dl class="done-list"><div><dt>Email</dt><dd id="ac-email"></dd></div><div><dt>Username</dt><dd id="ac-username"></dd></div></dl>
+                    <form id="username-form" class="flow-form" novalidate>
+                        <div class="field"><label for="ac-user-input">Public username (optional)</label><input id="ac-user-input" type="text" maxlength="24" autocomplete="off" aria-describedby="ac-user-err"><p class="field-err" id="ac-user-err" role="alert"></p></div>
+                        <button type="submit" class="btn btn-secondary">Save username</button>
+                    </form>
+                </article>
+                <article class="card acct-card">
+                    <h3 class="card-title"><i data-icon="shield" data-size="18"></i>Sync</h3>
+                    <p class="data-text" id="ac-sync"></p>
+                    <div class="data-actions"><button type="button" class="btn btn-secondary btn-sm" id="ac-sync-btn">Sync now</button><button type="button" class="btn btn-ghost btn-sm hidden" id="ac-import-btn">Import progress from this device</button></div>
+                </article>
+                <article class="card acct-card">
+                    <h3 class="card-title"><i data-icon="award" data-size="18"></i>Terms and privacy</h3>
+                    <p class="data-text" id="ac-policies"></p>
+                    <div class="data-actions"><a class="btn btn-ghost btn-sm" href="#terms">Terms</a><a class="btn btn-ghost btn-sm" href="#privacy">Privacy</a></div>
+                </article>
+                <article class="card acct-card">
+                    <h3 class="card-title"><i data-icon="lock" data-size="18"></i>Session</h3>
+                    <div class="data-actions"><button type="button" class="btn btn-secondary" id="ac-logout">Log out</button></div>
+                </article>
+                <article class="card acct-card acct-danger">
+                    <h3 class="card-title"><i data-icon="trash" data-size="18"></i>Delete account</h3>
+                    <p class="data-text">This removes your login, character, workouts, quests and XP history from the service and from this device. It cannot be undone.</p>
+                    <form id="delete-form" class="flow-form" novalidate>
+                        <div class="field"><label for="ac-del-pass">Enter your password to confirm</label><input id="ac-del-pass" type="password" autocomplete="current-password" maxlength="72" aria-describedby="ac-del-err"><p class="field-err" id="ac-del-err" role="alert"></p></div>
+                        <button type="submit" class="btn btn-danger">Delete my account</button>
+                    </form>
+                </article>
+            </section>
+        </div>
+
+        <div class="screen" id="screen-preferences" data-screen="preferences" data-tab="profile" data-parent="profile" data-title="Goals and preferences" hidden>
+            <section class="section page-wrap">
+                <header class="section-head"><h2>Goals and preferences</h2></header>
+                <form id="edit-form" class="flow-form card acct-card" novalidate>
+                    <fieldset class="opt-group"><legend>Main goal</legend><div class="opt-list" id="ep-primary"></div></fieldset>
+                    <fieldset class="opt-group"><legend>Also nice to have (up to 3)</legend><div class="opt-list" id="ep-secondary"></div></fieldset>
+                    <fieldset class="opt-group"><legend>Experience</legend><div class="opt-list" id="ep-experience"></div></fieldset>
+                    <fieldset class="opt-group"><legend>Where you train</legend><div class="opt-list" id="ep-environment"></div></fieldset>
+                    <fieldset class="opt-group"><legend>Equipment you can use</legend><div class="opt-list" id="ep-equipment"></div></fieldset>
+                    <fieldset class="opt-group"><legend>Days per week</legend><div class="opt-list opt-inline" id="ep-frequency"></div></fieldset>
+                    <fieldset class="opt-group"><legend>Minutes per workout</legend><div class="opt-list opt-inline" id="ep-duration"></div></fieldset>
+                    <p class="form-err" id="edit-err" role="alert"></p>
+                    <p class="flow-notice hidden" id="edit-ok" role="status"></p>
+                    <button type="submit" class="btn btn-primary btn-lg full" id="edit-btn">Save changes</button>
+                </form>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Bottom navigation: the five main screens. Each tab keeps its own place (screen and scroll). -->
+    <nav class="tabbar" id="tabbar" aria-label="Main screens">
+        <a href="#home" class="tab" data-tab="home"><i data-icon="home" data-size="22"></i><span>Home</span></a>
+        <a href="#quests" class="tab" data-tab="quests"><i data-icon="target" data-size="22"></i><span>Quests</span></a>
+        <a href="#train" class="tab" data-tab="train"><i data-icon="dumbbell" data-size="22"></i><span>Train</span></a>
+        <a href="#discover" class="tab" data-tab="discover"><i data-icon="compass" data-size="22"></i><span>Discover</span></a>
+        <a href="#profile" class="tab" data-tab="profile"><i data-icon="user" data-size="22"></i><span>Profile</span></a>
+    </nav>
+    <div id="screen-announcer" class="visually-hidden" role="status" aria-live="polite"></div>
+
+    <!-- Minimised workout -->
+    <button type="button" id="session-pill" class="session-pill hidden" aria-label="Resume workout">
+        <span class="pill-dot" aria-hidden="true"></span>
+        <span class="pill-title" id="pill-title">Workout</span>
+        <span class="pill-time" id="pill-timer">00:00</span>
+        <span class="pill-action">Resume <i data-icon="chevron-right" data-size="16"></i></span>
+    </button>
+
+    <!-- Workout mode (full screen) -->
+    <div id="active-session-panel" class="workout hidden" role="dialog" aria-modal="true" aria-labelledby="session-title" aria-hidden="true">
+        <div class="workout-shell">
+            <div id="session-live">
+                <header class="workout-top">
+                    <button type="button" class="icon-btn" data-close-modal aria-label="Minimise workout"><i data-icon="chevron-down" data-size="24"></i></button>
+                    <div class="workout-title">
+                        <h2 id="session-title">Workout</h2>
+                        <p id="session-progress" class="workout-sub">0 / 0 sets</p>
+                    </div>
+                    <div class="workout-clock">
+                        <span id="session-timer" class="timer" role="timer" aria-label="Workout time">00:00</span>
+                        <button type="button" id="pause-session-btn" class="icon-btn" aria-pressed="false" aria-label="Pause workout"><i data-icon="pause" data-size="20"></i></button>
+                    </div>
+                </header>
+                <div class="workout-bar progress" id="workout-bar" role="progressbar" aria-label="Workout progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <div class="progress-fill" id="workout-bar-fill" style="width: 0%"></div>
+                </div>
+
+                <div id="rest-timer" class="rest hidden" role="group" aria-label="Rest timer">
+                    <div class="rest-row">
+                        <div>
+                            <span class="rest-label">Rest</span>
+                            <span id="rest-time" class="rest-time">01:00</span>
+                        </div>
+                        <div class="rest-buttons">
+                            <button type="button" id="rest-minus" class="btn btn-ghost btn-sm" aria-label="Remove 15 seconds of rest">−15s</button>
+                            <button type="button" id="rest-plus" class="btn btn-ghost btn-sm" aria-label="Add 15 seconds of rest">+15s</button>
+                            <button type="button" id="rest-skip" class="btn btn-secondary btn-sm">Skip</button>
+                        </div>
+                    </div>
+                    <div class="progress progress-thin"><div id="rest-fill" class="progress-fill"></div></div>
+                </div>
+
+                <div id="exercise-list" class="exercise-list"></div>
+
+                <div class="workout-footer">
+                    <button type="button" id="discard-session-btn" class="btn btn-ghost">Discard</button>
+                    <button type="button" id="complete-session-btn" class="btn btn-primary btn-lg">Complete session</button>
+                </div>
+            </div>
+
+            <div class="summary hidden" id="session-summary" role="status">
+                <span class="summary-badge"><i data-icon="trophy" data-size="32"></i></span>
+                <h2>Session complete</h2>
+                <p id="summary-note" class="summary-note"></p>
+                <div class="summary-xp"><span id="summary-xp">+0 XP</span></div>
+                <ul class="summary-quests hidden" id="summary-quests" aria-label="Quest rewards"></ul>
+                <dl class="summary-stats">
+                    <div><dd id="summary-sets">0</dd><dt>Sets</dt></div>
+                    <div><dd id="summary-reps">0</dd><dt>Reps</dt></div>
+                    <div><dd id="summary-time">00:00</dd><dt>Time</dt></div>
+                </dl>
+                <button type="button" id="close-session-btn" class="btn btn-primary btn-lg full">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workout history modal -->
+    <div id="history-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="history-title" aria-hidden="true">
+        <div class="modal-card">
+            <div class="modal-head">
+                <h3 id="history-title">Workout history</h3>
+                <button type="button" class="icon-btn" data-close-modal aria-label="Close history"><i data-icon="x" data-size="22"></i></button>
+            </div>
+            <div id="history-list" class="history-list"></div>
+        </div>
+    </div>
+
+    <!-- Exercise details modal -->
+    <div id="exercise-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-exercise-title" aria-hidden="true">
+        <div class="modal-card">
+            <div class="modal-head">
+                <h3 id="modal-exercise-title">Exercise</h3>
+                <button type="button" class="icon-btn" data-close-modal aria-label="Close exercise details"><i data-icon="x" data-size="22"></i></button>
+            </div>
+            <div class="video-placeholder">
+                <span class="play-disc"><i data-icon="play" data-size="24"></i></span>
+                <span class="video-note">Video coming soon</span>
+            </div>
+            <div class="tags" id="modal-tags"></div>
+            <p id="modal-description" class="modal-text"></p>
+            <div class="difficulty">
+                <span>Difficulty</span>
+                <span class="stars" id="modal-stars"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm modal -->
+    <div id="confirm-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-title" aria-hidden="true">
+        <div class="modal-card modal-narrow">
+            <div class="modal-head">
+                <h3 id="confirm-title">Confirm</h3>
+                <button type="button" class="icon-btn" data-close-modal aria-label="Close"><i data-icon="x" data-size="22"></i></button>
+            </div>
+            <p id="confirm-message" class="modal-text"></p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-ghost" data-close-modal id="confirm-cancel">Cancel</button>
+                <button type="button" id="confirm-ok" class="btn btn-primary" data-autofocus>Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level up modal -->
+    <div id="levelup-modal" class="modal modal-celebrate hidden" role="dialog" aria-modal="true" aria-labelledby="levelup-title" aria-hidden="true">
+        <div class="confetti" id="confetti" aria-hidden="true"></div>
+        <div class="modal-card levelup-card">
+            <div class="levelup-ring" aria-hidden="true"><i data-icon="arrow-up" data-size="34"></i></div>
+            <p class="eyebrow">Level up</p>
+            <h3 id="levelup-title">Level 2</h3>
+            <p id="levelup-rank" class="levelup-rank"></p>
+            <p id="levelup-xp" class="levelup-xp"></p>
+            <button type="button" class="btn btn-primary btn-lg" data-close-modal data-autofocus>Keep going</button>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>

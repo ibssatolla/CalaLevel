@@ -1,0 +1,19 @@
+{
+  "name": "calalevel-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "unit": "node unit3.mjs",
+    "browser": "node flows2.mjs && node flows3.mjs && node flows4.mjs && node flows5.mjs && node flows6.mjs",
+    "audit": "node qa31.mjs",
+    "perf": "node perf31.mjs",
+    "online": "node flows7.mjs && node flows8.mjs && node flows9.mjs",
+    "sql": "node supabase/sql-tests.mjs",
+    "config": "node real-config.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.50.0",
+    "leaflet": "1.9.4",
+    "leaflet-routing-machine": "3.2.12"
+  }
+}

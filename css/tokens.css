@@ -1,0 +1,114 @@
+/* CalaLevel design tokens.
+   Every colour, size, radius, shadow and timing used by styles.css comes from here.
+   Contrast ratios (WCAG) are listed next to the colours that carry text. */
+
+:root {
+    color-scheme: dark;
+
+    /* ---- Background and surfaces (deep charcoal) ---- */
+    --bg: #0d0f13;
+    --surface-1: #14171d;
+    --surface-2: #1b1f27;
+    --surface-3: #232833;
+    --surface-glass: rgba(20, 23, 29, 0.72);
+    --overlay: rgba(6, 7, 10, 0.78);
+
+    /* ---- Borders ---- */
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.16);
+
+    /* ---- Text hierarchy ---- */
+    --text: #f4f6f9;            /* 17.7:1 on bg */
+    --text-2: #b4bbc7;          /*  9.3:1 on surface-1 */
+    --text-3: #8c94a3;          /*  5.9:1 on surface-1, 5.4:1 on surface-2 */
+
+    /* ---- Brand accents ---- */
+    --primary: #22e1ee;         /* 11.2:1 on surface-1 */
+    --primary-hover: #5cebf5;
+    --primary-soft: rgba(34, 225, 238, 0.12);
+    --primary-ring: rgba(34, 225, 238, 0.45);
+    --on-primary: #03161a;      /* 11.5:1 on primary */
+    --secondary: #7c3aed;
+    --secondary-soft: rgba(124, 58, 237, 0.16);
+    --secondary-text: #b9a2ff;  /*  8.3:1 on surface-1 (use for purple text) */
+
+    /* ---- Status ---- */
+    --success: #4ade80;
+    --success-soft: rgba(74, 222, 128, 0.12);
+    --danger: #ff6b81;
+    --danger-soft: rgba(255, 107, 129, 0.12);
+    --gold: #fbbf24;
+    --gold-soft: rgba(251, 191, 36, 0.12);
+    --on-gold: #1a1203;
+
+    /* ---- Gradients (used selectively: progress, rings, level-up) ---- */
+    --gradient-progress: linear-gradient(90deg, var(--primary), var(--secondary));
+
+    /* ---- Typography ---- */
+    --font-sans: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+    --fs-xs: 0.75rem;
+    --fs-sm: 0.875rem;
+    --fs-base: 1rem;
+    --fs-md: 1.125rem;
+    --fs-lg: 1.375rem;
+    --fs-xl: clamp(1.5rem, 1.1rem + 1.6vw, 2rem);
+    --fs-2xl: clamp(1.9rem, 1.3rem + 2.6vw, 3rem);
+    --fs-3xl: clamp(2.2rem, 1.4rem + 3.6vw, 3.75rem);
+    --fw-regular: 400;
+    --fw-medium: 500;
+    --fw-semibold: 600;
+    --fw-bold: 700;
+    --fw-black: 800;
+    --lh-tight: 1.15;
+    --lh-base: 1.55;
+
+    /* ---- Spacing (4px base) ---- */
+    --sp-1: 0.25rem;
+    --sp-2: 0.5rem;
+    --sp-3: 0.75rem;
+    --sp-4: 1rem;
+    --sp-5: 1.25rem;
+    --sp-6: 1.5rem;
+    --sp-8: 2rem;
+    --sp-10: 2.5rem;
+    --sp-12: 3rem;
+    --sp-16: 4rem;
+    --section-gap: clamp(3rem, 2rem + 4vw, 5.5rem);
+    --page-pad: clamp(1rem, 0.5rem + 2.5vw, 2rem);
+    --page-max: 1180px;
+
+    /* ---- Radius ---- */
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 16px;
+    --r-xl: 22px;
+    --r-pill: 999px;
+
+    /* ---- Shadows ---- */
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.35);
+    --shadow-3: 0 20px 48px rgba(0, 0, 0, 0.5);
+    --shadow-glow: 0 0 0 1px var(--primary-ring), 0 0 24px rgba(34, 225, 238, 0.18);
+
+    /* ---- Motion ---- */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --t-fast: 120ms;
+    --t-base: 200ms;
+    --t-slow: 420ms;
+    --t-bar: 900ms;
+
+    /* ---- Layout ---- */
+    --header-h: 64px;
+    --tabbar-h: 64px;
+    --header-offset: 84px;
+    --tap: 44px;
+
+    /* ---- Layers ---- */
+    --z-header: 1200;
+    --z-tabbar: 1300;
+    --z-workout: 1400;
+    --z-modal: 2000;
+    --z-toast: 9999;
+}
